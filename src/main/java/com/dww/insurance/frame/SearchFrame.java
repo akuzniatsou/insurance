@@ -70,7 +70,7 @@ public class SearchFrame extends JPanel {
         BufferedImage wPic = null;
         try {
 //            wPic = ImageIO.read(this.getClass().getResource());
-            wPic = ImageIO.read(new File("C:\\workspace\\my-test\\src\\main\\java\\gui\\res\\AutoShema.jpg"));
+            wPic = ImageIO.read(new File("src/main/resources/AutoShema.jpg"));
             JLabel wIcon = new JLabel(new ImageIcon(wPic));
             wIcon.setBounds(260, 350, 300, 300);
             add(wIcon);
