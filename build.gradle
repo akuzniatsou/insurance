@@ -4,12 +4,14 @@ plugins {
 }
 
 repositories {
-    jcenter()
+    mavenCentral()
 }
 
 mainClassName = 'com.dww.insurance.InsuranceApp'
 
-// gradlew cD cDT iDT
+dependencies {
+    compile group: 'org.postgresql', name: 'postgresql', version: '9.4.1211'
+}
 
 task createDatabase (type:Exec) {
     commandLine 'psql', '-h', 'localhost', '-d', 'postgres', '-U', 'postgres', '-f' , 'sql/init_db.sql'
@@ -21,4 +23,11 @@ task createDatabaseTables (type:Exec) {
 
 task initDatabaseTables (type:Exec) {
     commandLine 'psql', '-h', 'localhost', '-d', 'insdb', '-U', 'postgres', '-f' , 'sql/init_table.sql'
+}
+
+distZip {
+    into(project.name + '/bin') {
+        from '.'
+        include 'conf/*'
+    }
 }

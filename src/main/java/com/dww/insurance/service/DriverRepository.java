@@ -9,21 +9,19 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.Properties;
 import java.util.UUID;
 
 public class DriverRepository {
 
+    private Properties props = AppProperties.getInstance().getAppProps();
 
-    String url = "jdbc:postgresql://localhost:5432/insurance";
-    String user = "postgres";
-    String password = "postgres123";
 
     public int insertDriverInfo(DriverInfo driverInfo) {
         Connection conn = null;
         PreparedStatement stmt = null;
-
         try {
-            conn = DriverManager.getConnection(url, user, password);
+            conn = DriverManager.getConnection(props.getProperty("url"), props.getProperty("user"), props.getProperty("password"));
             stmt = conn.prepareStatement("INSERT INTO owner (name, pass_id) VALUES (?,?)", Statement.RETURN_GENERATED_KEYS);
             stmt.setString(1, driverInfo.getName());
             stmt.setString(2, driverInfo.getPassId());
@@ -60,7 +58,7 @@ public class DriverRepository {
         PreparedStatement stmt = null;
 
         try {
-            conn = DriverManager.getConnection(url, user, password);
+            conn = DriverManager.getConnection(props.getProperty("url"), props.getProperty("user"), props.getProperty("password"));
             stmt = conn.prepareStatement("INSERT INTO vehicle (owner_id, type, body_number, number) VALUES (?,?,?,?)");
             stmt.setInt(1, driverId);
             stmt.setString(2, vehicleInfo.getType());

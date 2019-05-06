@@ -6,6 +6,9 @@ import com.dww.insurance.domain.Person;
 import com.dww.insurance.domain.QueryParam;
 import com.dww.insurance.domain.VehicleInfo;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.net.URL;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
@@ -13,46 +16,44 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
+import java.util.Properties;
 
 public class SearchRepository {
 
-    String url = "jdbc:postgresql://localhost:5432/insurance";
-    String user = "postgres";
-    String password = "postgres123";
-
-
+    private Properties props = AppProperties.getInstance().getAppProps();
 
     public List<Person> find(QueryParam queryParam) {
         Connection conn = null;
         PreparedStatement stmt = null;
         String surname = queryParam.getSurname();
-
         try {
-            conn = DriverManager.getConnection(url, user, password);
+            conn = DriverManager.getConnection(props.getProperty("url"), props.getProperty("user"), props.getProperty("password"));
             stmt = conn.prepareStatement("SELECT * FROM owner where name LIKE ?");
             stmt.setString(1, "%" + surname + "%");
             ResultSet rs = stmt.executeQuery();
             List<Person> persons = new ArrayList<>();
-                while (rs.next()) {
-                    persons.add(new Person(rs.getInt(1), rs.getString(2), rs.getString(3)));
-                }
-                return persons;
+            while (rs.next()) {
+                persons.add(new Person(rs.getInt(1), rs.getString(2), rs.getString(3)));
+            }
+            return persons;
         } catch (SQLException ex) {
             ex.printStackTrace();
             throw new RuntimeException(ex);
-        }
-        finally {
+        } finally {
             try {
-                if (stmt != null) { stmt.close(); }
-            }
-            catch (Exception e) {
+                if (stmt != null) {
+                    stmt.close();
+                }
+            } catch (Exception e) {
                 e.printStackTrace();
                 throw new RuntimeException(e);
             }
             try {
-                if (conn != null) { conn.close(); }
-            }
-            catch (Exception e) {
+                if (conn != null) {
+                    conn.close();
+                }
+            } catch (Exception e) {
                 e.printStackTrace();
                 throw new RuntimeException(e);
             }
@@ -65,7 +66,7 @@ public class SearchRepository {
         PreparedStatement stmt = null;
 
         try {
-            conn = DriverManager.getConnection(url, user, password);
+            conn = DriverManager.getConnection(props.getProperty("url"), props.getProperty("user"), props.getProperty("password"));
             stmt = conn.prepareStatement("SELECT * FROM owner");
             ResultSet rs = stmt.executeQuery();
             List<Person> persons = new ArrayList<>();
@@ -76,19 +77,20 @@ public class SearchRepository {
         } catch (SQLException ex) {
             ex.printStackTrace();
             throw new RuntimeException(ex);
-        }
-        finally {
+        } finally {
             try {
-                if (stmt != null) { stmt.close(); }
-            }
-            catch (Exception e) {
+                if (stmt != null) {
+                    stmt.close();
+                }
+            } catch (Exception e) {
                 e.printStackTrace();
                 throw new RuntimeException(e);
             }
             try {
-                if (conn != null) { conn.close(); }
-            }
-            catch (Exception e) {
+                if (conn != null) {
+                    conn.close();
+                }
+            } catch (Exception e) {
                 e.printStackTrace();
                 throw new RuntimeException(e);
             }
@@ -101,7 +103,7 @@ public class SearchRepository {
         PreparedStatement stmt = null;
 
         try {
-            conn = DriverManager.getConnection(url, user, password);
+            conn = DriverManager.getConnection(props.getProperty("url"), props.getProperty("user"), props.getProperty("password"));
 //            stmt = conn.prepareStatement("SELECT * FROM owner JOIN vehicle v on owner.id = v.owner_id JOIN damage d on v.id = d.vehicle_id WHERE owner.id = ?");
             stmt = conn.prepareStatement("SELECT * FROM owner JOIN vehicle v on owner.id = v.owner_id WHERE owner.id = ?");
             stmt.setInt(1, ownerId);
@@ -145,19 +147,20 @@ public class SearchRepository {
         } catch (SQLException ex) {
             ex.printStackTrace();
             throw new RuntimeException(ex);
-        }
-        finally {
+        } finally {
             try {
-                if (stmt != null) { stmt.close(); }
-            }
-            catch (Exception e) {
+                if (stmt != null) {
+                    stmt.close();
+                }
+            } catch (Exception e) {
                 e.printStackTrace();
                 throw new RuntimeException(e);
             }
             try {
-                if (conn != null) { conn.close(); }
-            }
-            catch (Exception e) {
+                if (conn != null) {
+                    conn.close();
+                }
+            } catch (Exception e) {
                 e.printStackTrace();
                 throw new RuntimeException(e);
             }

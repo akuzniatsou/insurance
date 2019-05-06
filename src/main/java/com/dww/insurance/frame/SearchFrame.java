@@ -9,6 +9,9 @@ import javax.imageio.ImageIO;
 import javax.swing.*;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
@@ -42,18 +45,17 @@ public class SearchFrame extends JPanel {
         setLayout(null);
         JList<Person> list = new JList<>(listModel);
         list.setBounds(25, 114, 170, 402);
-        list.addListSelectionListener(new ListSelectionListener() {
-
+        list.addMouseListener(new MouseAdapter() {
             @Override
-            public void valueChanged(ListSelectionEvent arg0) {
-                if (!arg0.getValueIsAdjusting()) {
-                    JList source = (JList)arg0.getSource();
-                    Person selectedPerson = (Person) source.getSelectedValue();
-                    searchDriverInfo(selectedPerson);
-//                    JOptionPane.showMessageDialog(SearchFrame.this, "Search", "Action", JOptionPane.ERROR_MESSAGE);
-                }
+            public void mouseClicked(MouseEvent e) {
+                JList source = (JList)e.getSource();
+                Person selectedPerson = (Person) source.getSelectedValue();
+                searchDriverInfo(selectedPerson);
             }
+
+
         });
+
         add(list);
 
         initSearchTab();
@@ -69,8 +71,8 @@ public class SearchFrame extends JPanel {
 
         BufferedImage wPic = null;
         try {
-//            wPic = ImageIO.read(this.getClass().getResource());
-            wPic = ImageIO.read(new File("src/main/resources/AutoShema.jpg"));
+            wPic = ImageIO.read(getClass().getClassLoader().getResource("AutoShema.jpg"));
+//            wPic = ImageIO.read(new File());
             JLabel wIcon = new JLabel(new ImageIcon(wPic));
             wIcon.setBounds(260, 350, 300, 300);
             add(wIcon);
@@ -193,11 +195,13 @@ public class SearchFrame extends JPanel {
 
     private void search() {
         listModel.clear();
-        if (surnameTextField.getText() == null) {
-            searchRepository.searchAll()
+        if (surnameTextField.getText().isEmpty() && ownerTextField.getText().isEmpty() && bodyTextField.getText().isEmpty()) {
+            searchRepository
+                .searchAll()
                 .forEach(person -> listModel.addElement(person));
         } else {
-            searchRepository.find(new QueryParam(surnameTextField.getText(), ownerTextField.getText(), bodyTextField.getText()))
+            searchRepository
+                .find(new QueryParam(surnameTextField.getText(), ownerTextField.getText(), bodyTextField.getText()))
                 .forEach(person -> listModel.addElement(person));
         }
     }
