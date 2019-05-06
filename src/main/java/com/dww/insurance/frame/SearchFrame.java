@@ -9,6 +9,7 @@ import javax.imageio.ImageIO;
 import javax.swing.*;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
+import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
@@ -73,12 +74,47 @@ public class SearchFrame extends JPanel {
         try {
             wPic = ImageIO.read(getClass().getClassLoader().getResource("AutoShema.jpg"));
 //            wPic = ImageIO.read(new File());
-            JLabel wIcon = new JLabel(new ImageIcon(wPic));
-            wIcon.setBounds(260, 350, 300, 300);
+
+            ImageIcon imageIcon = new ImageIcon(wPic); // load the image to a imageIcon
+            Image image = imageIcon.getImage(); // transform it
+            Image newimg = image.getScaledInstance(400, 250,  java.awt.Image.SCALE_SMOOTH); // scale it the smooth way
+            imageIcon = new ImageIcon(newimg);
+
+            JLabel wIcon = new JLabel(imageIcon);
+            wIcon.setLayout(null);
+
+
+            wIcon.add(zoneLabel(348, 115, true)); // zone 5
+            wIcon.add(zoneLabel(285, 115, true)); // zone 6
+            wIcon.add(zoneLabel(211, 115, true)); // zone 11
+            wIcon.add(zoneLabel(102, 115, true)); // zone 12
+            wIcon.add(zoneLabel(12, 115, true)); // zone 13
+
+            wIcon.add(zoneLabel(119, 203, true)); // zone 1
+            wIcon.add(zoneLabel(171, 203, true)); // zone 2
+            wIcon.add(zoneLabel(221, 203, true)); // zone 3
+            wIcon.add(zoneLabel(273, 203, true)); // zone 4
+
+            wIcon.add(zoneLabel(124, 28, true)); // zone 10
+            wIcon.add(zoneLabel(171, 28, true)); // zone 9
+            wIcon.add(zoneLabel(221, 28, true)); // zone 8
+            wIcon.add(zoneLabel(273, 28, true)); // zone 7
+
+            wIcon.setBounds(260, 320, 400, 250);
             add(wIcon);
         } catch (IOException e) {
             e.printStackTrace();
         }
+
+        Label label1 = new Label(){
+            public void paint(Graphics g) {
+                super.paint(g);
+                g.setColor(Color.red);
+                g.drawOval(400, 400, 100, 100);
+            }
+        };
+        add(label1);
+
 
         JSeparator separator = new JSeparator();
         separator.setBounds(0, 75, 784, 2);
@@ -221,6 +257,20 @@ public class SearchFrame extends JPanel {
         vehicleModel.setText("Model : " + (report == null ? "" : report.getVehicleInfo().getModel()));
         vehicleType.setText("Type : " + (report == null ? "" : report.getVehicleInfo().getType()));
         vehicleBodyId.setText("Body ID : " + (report == null ? "" : report.getVehicleInfo().getBodyId()));
+    }
+
+    private JLabel zoneLabel(int x, int y, boolean enabled) {
+        SelectionPoint selectionPoint13 = new SelectionPoint(enabled);
+        JLabel zoneLabel = new JLabel(selectionPoint13);
+            zoneLabel.addMouseListener(new MouseAdapter() {
+                @Override
+                public void mouseClicked(MouseEvent e) {
+                    selectionPoint13.switchColor();
+                    zoneLabel.repaint();
+                }
+            });
+        zoneLabel.setBounds(x,y,25,25);
+        return zoneLabel;
     }
 
 }
