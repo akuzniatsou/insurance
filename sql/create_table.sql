@@ -36,6 +36,16 @@ CREATE TABLE IF NOT EXISTS public.damage
   zone1 boolean,
   zone2 boolean,
   zone3 boolean,
+  zone4 boolean,
+  zone5 boolean,
+  zone6 boolean,
+  zone7 boolean,
+  zone8 boolean,
+  zone9 boolean,
+  zone10 boolean,
+  zone11 boolean,
+  zone12 boolean,
+  zone13 boolean,
   CONSTRAINT damage_pk PRIMARY KEY (id),
   CONSTRAINT fk_damage_vehicle_id FOREIGN KEY (vehicle_id)
       REFERENCES public.vehicle (id) MATCH SIMPLE

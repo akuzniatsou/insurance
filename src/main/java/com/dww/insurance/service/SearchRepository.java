@@ -1,5 +1,7 @@
 package com.dww.insurance.service;
 
+import com.dww.insurance.domain.Damage;
+import com.dww.insurance.domain.DamageInfo;
 import com.dww.insurance.domain.DamageReport;
 import com.dww.insurance.domain.DriverInfo;
 import com.dww.insurance.domain.Person;
@@ -104,8 +106,8 @@ public class SearchRepository {
 
         try {
             conn = DriverManager.getConnection(props.getProperty("url"), props.getProperty("user"), props.getProperty("password"));
-//            stmt = conn.prepareStatement("SELECT * FROM owner JOIN vehicle v on owner.id = v.owner_id JOIN damage d on v.id = d.vehicle_id WHERE owner.id = ?");
-            stmt = conn.prepareStatement("SELECT * FROM owner JOIN vehicle v on owner.id = v.owner_id WHERE owner.id = ?");
+            stmt = conn.prepareStatement("SELECT * FROM owner JOIN vehicle v on owner.id = v.owner_id JOIN damage d on v.id = d.vehicle_id WHERE owner.id = ?");
+//            stmt = conn.prepareStatement("SELECT * FROM owner JOIN vehicle v on owner.id = v.owner_id WHERE owner.id = ?");
             stmt.setInt(1, ownerId);
 
             ResultSet rs = stmt.executeQuery();
@@ -127,19 +129,33 @@ public class SearchRepository {
                 vehicleInfo.setBodyId(rs.getString(11));
                 vehicleInfo.setModel(rs.getString(12));
 
-//                DamageInfo damageInfo = new DamageInfo();
-//                damageInfo.setId(rs.getInt(9));
-//                damageInfo.setDate(rs.getDate(11));
-//                damageInfo.setDamage(new Damage(new boolean[]{
-//                    rs.getBoolean(12),
-//                    rs.getBoolean(13),
-//                    rs.getBoolean(14)
-//                }));
+                DamageInfo damageInfo = new DamageInfo();
+                damageInfo.setId(rs.getInt(13));
+                damageInfo.setDate(rs.getDate(15));
+                damageInfo.setDamage(new Damage(new boolean[]{
+                    rs.getBoolean(16),
+                    rs.getBoolean(17),
+                    rs.getBoolean(18),
+
+                    rs.getBoolean(19),
+                    rs.getBoolean(20),
+                    rs.getBoolean(21),
+
+                    rs.getBoolean(22),
+                    rs.getBoolean(23),
+                    rs.getBoolean(24),
+
+                    rs.getBoolean(25),
+                    rs.getBoolean(26),
+                    rs.getBoolean(27),
+
+                    rs.getBoolean(28)
+                }));
 
                 DamageReport damageReport = new DamageReport();
                 damageReport.setDriverInfo(driverInfo);
                 damageReport.setVehicleInfo(vehicleInfo);
-//                damageReport.setDamageInfo(damageInfo);
+                damageReport.setDamageInfo(damageInfo);
                 return damageReport;
             }
             return null;

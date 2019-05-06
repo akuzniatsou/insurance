@@ -1,5 +1,7 @@
 package com.dww.insurance.frame;
 
+import com.dww.insurance.domain.Damage;
+import com.dww.insurance.domain.DamageInfo;
 import com.dww.insurance.domain.DamageReport;
 import com.dww.insurance.domain.Person;
 import com.dww.insurance.domain.QueryParam;
@@ -35,6 +37,9 @@ public class SearchFrame extends JPanel {
     private JLabel vehicleType;
     private JLabel vehicleBodyId;
 
+    private JLabel wIcon;
+
+
     public SearchFrame(IApplication app) {
         this.app = app;
         searchRepository = new SearchRepository();
@@ -64,7 +69,6 @@ public class SearchFrame extends JPanel {
         initDriverInfoTab();
 
         initVehicleTab();
-        populateDamageReport(null);
 
         JLabel lblDamage = new JLabel("Damage Info:");
         lblDamage.setBounds(260, 300, 100, 14);
@@ -80,26 +84,8 @@ public class SearchFrame extends JPanel {
             Image newimg = image.getScaledInstance(400, 250,  java.awt.Image.SCALE_SMOOTH); // scale it the smooth way
             imageIcon = new ImageIcon(newimg);
 
-            JLabel wIcon = new JLabel(imageIcon);
+            wIcon = new JLabel(imageIcon);
             wIcon.setLayout(null);
-
-
-            wIcon.add(zoneLabel(348, 115, true)); // zone 5
-            wIcon.add(zoneLabel(285, 115, true)); // zone 6
-            wIcon.add(zoneLabel(211, 115, true)); // zone 11
-            wIcon.add(zoneLabel(102, 115, true)); // zone 12
-            wIcon.add(zoneLabel(12, 115, true)); // zone 13
-
-            wIcon.add(zoneLabel(119, 203, true)); // zone 1
-            wIcon.add(zoneLabel(171, 203, true)); // zone 2
-            wIcon.add(zoneLabel(221, 203, true)); // zone 3
-            wIcon.add(zoneLabel(273, 203, true)); // zone 4
-
-            wIcon.add(zoneLabel(124, 28, true)); // zone 10
-            wIcon.add(zoneLabel(171, 28, true)); // zone 9
-            wIcon.add(zoneLabel(221, 28, true)); // zone 8
-            wIcon.add(zoneLabel(273, 28, true)); // zone 7
-
             wIcon.setBounds(260, 320, 400, 250);
             add(wIcon);
         } catch (IOException e) {
@@ -115,6 +101,7 @@ public class SearchFrame extends JPanel {
         };
         add(label1);
 
+        populateDamageReport(null);
 
         JSeparator separator = new JSeparator();
         separator.setBounds(0, 75, 784, 2);
@@ -257,11 +244,33 @@ public class SearchFrame extends JPanel {
         vehicleModel.setText("Model : " + (report == null ? "" : report.getVehicleInfo().getModel()));
         vehicleType.setText("Type : " + (report == null ? "" : report.getVehicleInfo().getType()));
         vehicleBodyId.setText("Body ID : " + (report == null ? "" : report.getVehicleInfo().getBodyId()));
+        damageZone(report == null ? null : report.getDamageInfo());
+    }
+
+    private void damageZone(DamageInfo damageInfo) {
+        if (damageInfo != null) wIcon.removeAll();
+        wIcon.add(zoneLabel(348, 115, damageInfo != null && damageInfo.getDamage().getDamageZone()[4])); // zone 5
+        wIcon.add(zoneLabel(285, 115, damageInfo != null && damageInfo.getDamage().getDamageZone()[5])); // zone 6
+        wIcon.add(zoneLabel(211, 115, damageInfo != null && damageInfo.getDamage().getDamageZone()[10])); // zone 11
+        wIcon.add(zoneLabel(102, 115, damageInfo != null && damageInfo.getDamage().getDamageZone()[11])); // zone 12
+        wIcon.add(zoneLabel(12, 115, damageInfo != null && damageInfo.getDamage().getDamageZone()[12])); // zone 13
+
+        wIcon.add(zoneLabel(119, 203, damageInfo != null && damageInfo.getDamage().getDamageZone()[0])); // zone 1
+        wIcon.add(zoneLabel(171, 203, damageInfo != null && damageInfo.getDamage().getDamageZone()[1])); // zone 2
+        wIcon.add(zoneLabel(221, 203, damageInfo != null && damageInfo.getDamage().getDamageZone()[2])); // zone 3
+        wIcon.add(zoneLabel(273, 203, damageInfo != null && damageInfo.getDamage().getDamageZone()[3])); // zone 4
+
+        wIcon.add(zoneLabel(124, 28, damageInfo != null && damageInfo.getDamage().getDamageZone()[9])); // zone 10
+        wIcon.add(zoneLabel(171, 28, damageInfo != null && damageInfo.getDamage().getDamageZone()[8])); // zone 9
+        wIcon.add(zoneLabel(221, 28, damageInfo != null && damageInfo.getDamage().getDamageZone()[7])); // zone 8
+        wIcon.add(zoneLabel(273, 28, damageInfo != null && damageInfo.getDamage().getDamageZone()[6])); // zone 7
+        wIcon.repaint();
     }
 
     private JLabel zoneLabel(int x, int y, boolean enabled) {
         SelectionPoint selectionPoint13 = new SelectionPoint(enabled);
         JLabel zoneLabel = new JLabel(selectionPoint13);
+
             zoneLabel.addMouseListener(new MouseAdapter() {
                 @Override
                 public void mouseClicked(MouseEvent e) {

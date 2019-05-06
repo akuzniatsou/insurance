@@ -14,9 +14,13 @@
 
 > create database
 
-```
+`
 :\> gradlew cD cDT iDT
-```
+`
+OR
+`
+:\> gradlew initDatabaseTables
+`
 
 > run application
 

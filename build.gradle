@@ -17,11 +17,11 @@ task createDatabase (type:Exec) {
     commandLine 'psql', '-h', 'localhost', '-d', 'postgres', '-U', 'postgres', '-f' , 'sql/init_db.sql'
 }
 
-task createDatabaseTables (type:Exec) {
+task createDatabaseTables (dependsOn:createDatabase, type:Exec) {
     commandLine 'psql', '-h', 'localhost', '-d', 'insdb', '-U', 'postgres', '-f' , 'sql/create_table.sql'
 }
 
-task initDatabaseTables (type:Exec) {
+task initDatabaseTables (dependsOn:createDatabaseTables, type:Exec) {
     commandLine 'psql', '-h', 'localhost', '-d', 'insdb', '-U', 'postgres', '-f' , 'sql/init_table.sql'
 }
 
