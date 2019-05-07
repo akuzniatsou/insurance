@@ -34,7 +34,7 @@ distZip {
 
 task prep {
     doLast {
-        def f = new File("$buildDir/postgresql-9.5.16.tar.gz")
+        def f = new File("$projectDir/postgresql-9.5.16.tar.gz")
         if (!f.exists()) {
             new URL('https://get.enterprisedb.com/postgresql/postgresql-9.5.16-1-windows-x64-binaries.zip').withInputStream { i ->
                 f.withOutputStream {
@@ -46,7 +46,7 @@ task prep {
 }
 
 task unpack(dependsOn: prep, type: Copy) {
-    from zipTree("$buildDir/postgresql-9.5.16.tar.gz")
+    from zipTree("$projectDir/postgresql-9.5.16.tar.gz")
     into "$buildDir/postgres"
 }
 
