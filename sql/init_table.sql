@@ -13,7 +13,7 @@ INSERT INTO public.vehicle (id, owner_id, type, number, body_number, model) VALU
     (204, 104, 'JEEP', '90-34 FG', 'eade86be-f0d0-4a49-8826-3939a5465317', 'TOYOTA RAW 4');
 
 INSERT INTO public.damage (id, vehicle_id, date, zone1, zone2, zone3, zone4, zone5, zone6, zone7, zone8, zone9, zone10, zone11, zone12, zone13) VALUES
-    (301, 201, '2019-04-27 19:19:21.630000', true, false, false, true, false, false, true, false, false, true, false, false, true),
+    (301, 201, '2019-04-27 19:19:21.630000', true, false, false, true, true, false, true, false, true, true, false, false, true),
     (302, 203, '2019-04-27 19:19:21.630000', true, false, true, true, false, false, true, false, false, true, false, false, true),
-    (303, 203, '2019-01-27 19:19:21.630000', true, false, true, true, false, false, true, false, false, true, false, false, true),
-    (304, 202, '2019-04-29 19:19:21.630000', true, false, true, true, false, false, true, false, false, true, false, false, true);
+    (303, 202, '2019-01-27 19:19:21.630000', true, false, true, true, false, true, true, false, true, true, false, false, true),
+    (304, 204, '2019-04-29 19:19:21.630000', true, false, true, true, false, false, true, true, false, true, true, false, true);

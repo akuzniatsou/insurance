@@ -21,13 +21,13 @@ public class SelectionPoint implements Icon {
         if (selected) {
             color = Color.red;
         } else {
-            color = Color.black;
+            color = Color.green;
         }
     }
 
     public void switchColor() {
         if (color == Color.red) {
-            color = Color.black;
+            color = Color.green;
         } else {
             color = Color.red;
         }
@@ -38,8 +38,8 @@ public class SelectionPoint implements Icon {
         Graphics2D g2 = (Graphics2D) g;
         Ellipse2D.Double circle = new Ellipse2D.Double(0, 0, 20, 20);
         g2.setColor(color);
-        g2.setStroke(new BasicStroke(2));
-        g2.draw(circle);
+       // g2.setStroke(new BasicStroke(1));
+        g2.fill(circle);
     }
 
     @Override

@@ -1,5 +1,6 @@
-CREATE SEQUENCE IF NOT EXISTS public.owner_seq START 107;
-CREATE SEQUENCE IF NOT EXISTS public.vehicle_seq START 205;
+CREATE SEQUENCE IF NOT EXISTS public.owner_seq START 130;
+CREATE SEQUENCE IF NOT EXISTS public.vehicle_seq START 230;
+CREATE SEQUENCE IF NOT EXISTS public.damage_seq START 330;
 
 
 CREATE TABLE IF NOT EXISTS public.owner
@@ -30,7 +31,7 @@ CREATE TABLE IF NOT EXISTS public.vehicle
 
 CREATE TABLE IF NOT EXISTS public.damage
 (
-  id bigint NOT NULL,
+  id bigint NOT NULL DEFAULT nextval('damage_seq'::regclass),
   vehicle_id bigint NOT NULL,
   date timestamp with time zone NOT NULL,
   zone1 boolean,
