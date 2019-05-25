@@ -2,3 +2,9 @@
 /.gradle/
 /build/
 /out/
+
+*.ipr
+*.iml
+*.iws
+logfile
+*.tar.gz
