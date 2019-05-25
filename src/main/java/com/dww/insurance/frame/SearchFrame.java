@@ -13,6 +13,10 @@ import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
@@ -109,20 +113,16 @@ public class SearchFrame extends JPanel {
         add(label1);
         populateDamageReport(null);
 
-        JSeparator separator = new JSeparator();
-        separator.setBounds(5, 75, 785, 2);
-        add(separator);
-
-        JLabel lblSearchResult = new JLabel("Search Result :");
-        lblSearchResult.setBounds(25, 85, 100, 14);
-//        add(lblSearchResult);
-
 
 
         setVisible(true);
     }
 
     private void initSearchResult() {
+        JSeparator searchResultSeparator = new JSeparator();
+        searchResultSeparator.setBounds(5, 50, 785, 2);
+        add(searchResultSeparator);
+
         tableData = new ArrayList<>();
         tableModel = new SearchResultTableModel(tableData);
         table = new JTable(tableModel);
@@ -131,12 +131,12 @@ public class SearchFrame extends JPanel {
         table.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
-                int personId = (int) table.getModel().getValueAt(table.getSelectedRow(), 0);
+                int personId = (int) table.getModel().getValueAt(table.convertRowIndexToModel(table.getSelectedRow()), 0);
                 searchDriverInfo(personId);
             }
         });
         JScrollPane scrollPaneTable = new JScrollPane(table);
-        scrollPaneTable.setBounds(20, 85, 750, 85);
+        scrollPaneTable.setBounds(20, 60, 750, 116);
         add(scrollPaneTable);
     }
 
@@ -189,45 +189,44 @@ public class SearchFrame extends JPanel {
     }
 
     private void initSearchTab() {
-        JLabel lblNewLabel = new JLabel("Surname");
-        lblNewLabel.setBounds(25, 42, 57, 14);
-        add(lblNewLabel);
+        JPanel searchPanel = new JPanel(new FlowLayout());
+        searchPanel.setBounds(20, 5, 750, 40);
 
-        surnameTextField = new JTextField();
-        surnameTextField.setBounds(81, 39, 86, 20);
-        add(surnameTextField);
-        surnameTextField.setColumns(10);
+        searchPanel.add(new JLabel("Surname"));
 
-        JLabel lblOwnerId = new JLabel("Owner ID");
-        lblOwnerId.setBounds(189, 42, 77, 14);
-        add(lblOwnerId);
+        surnameTextField = new JTextField(10);
+        searchPanel.add(surnameTextField);
 
-        ownerTextField = new JTextField();
-        ownerTextField.setBounds(260, 39, 86, 20);
-        add(ownerTextField);
-        ownerTextField.setColumns(10);
+        searchPanel.add(new JLabel("Owner ID"));
 
-        JLabel lblBodyId = new JLabel("Body ID");
-        lblBodyId.setBounds(374, 42, 57, 14);
-        add(lblBodyId);
+        ownerTextField = new JTextField(10);
+        searchPanel.add(ownerTextField);
 
-        bodyTextField = new JTextField();
-        bodyTextField.setBounds(422, 39, 86, 20);
-        add(bodyTextField);
-        bodyTextField.setColumns(10);
+        searchPanel.add(new JLabel("Body ID"));
+
+        bodyTextField = new JTextField(10);
+        searchPanel.add(bodyTextField);
 
         JButton btnSearch = new JButton("Search");
-        btnSearch.setBounds(553, 42, 89, 23);
         btnSearch.addActionListener(event -> search());
-        add(btnSearch);
+        searchPanel.add(btnSearch);
 
         JButton btnAdd = new JButton("Add");
         btnAdd.addActionListener(e -> {
             SearchFrame.this.updateUI();
             app.edit();
         });
-        btnAdd.setBounds(652, 42, 87, 23);
-        add(btnAdd);
+        searchPanel.add(btnAdd);
+
+        JButton clearButton = new JButton("Clear");
+        clearButton.addActionListener(e -> {
+            surnameTextField.setText("");
+            ownerTextField.setText("");
+            bodyTextField.setText("");
+        });
+        searchPanel.add(clearButton);
+
+        add(searchPanel);
     }
 
     private void search() {
