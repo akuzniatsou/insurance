@@ -33,7 +33,7 @@ public class SearchRepository {
                 parameters.add(queryParam.getOwnerId());
             }
             if (!isBlank(queryParam.getSurname())) {
-                query.append(" and o.last_name like ?");
+                query.append(" and o.last_name ilike ?");
                 parameters.add(queryParam.getSurname());
             }
             if (!isBlank(queryParam.getBodyId())) {
