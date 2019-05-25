@@ -2,21 +2,14 @@ package com.dww.insurance.frame;
 
 import com.dww.insurance.domain.DamageInfo;
 import com.dww.insurance.domain.DamageReport;
-import com.dww.insurance.domain.SearchResult;
 import com.dww.insurance.domain.QueryParam;
+import com.dww.insurance.domain.SearchResult;
 import com.dww.insurance.model.SearchResultTableModel;
 import com.dww.insurance.service.SearchRepository;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
-import javax.swing.event.ListSelectionEvent;
-import javax.swing.event.ListSelectionListener;
-
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.KeyAdapter;
-import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
@@ -46,8 +39,9 @@ public class SearchFrame extends JPanel {
     private JLabel vehicleType;
     private JLabel vehicleBodyId;
 
+    private DamageReport report;
+    private JButton editBtn;
     private JLabel wIcon;
-
 
     private SearchResultTableModel tableModel;
     private List<SearchResult> tableData;
@@ -63,16 +57,28 @@ public class SearchFrame extends JPanel {
     public void initialize() {
         removeAll();
         setLayout(null);
-
         initSearchResult();
-
         initSearchTab();
-
-        // TODO fix position
         initDriverInfoTab();
-        // TODO fix position
         initVehicleTab();
+        initDamageInfoTab();
+        initEditBnt();
+        populateDamageReport(null);
+        setVisible(true);
+    }
 
+    private void initEditBnt() {
+        editBtn = new JButton("Edit");
+        editBtn.setBounds(90, 520, 100, 25);
+        editBtn.addActionListener(event -> {
+            SearchFrame.this.updateUI();
+            app.edit(report);
+        });
+        editBtn.setVisible(false);
+        add(editBtn);
+    }
+
+    private void initDamageInfoTab() {
         JLabel lblDamage = new JLabel("Damage Info:");
         lblDamage.setBounds(260, BASE_LINE, 100, BASE_HEIGHT);
         add(lblDamage);
@@ -81,14 +87,13 @@ public class SearchFrame extends JPanel {
         separator_3.setBounds(250, BASE_LINE + 20, 530, 2);
         add(separator_3);
 
-        BufferedImage wPic = null;
+        BufferedImage wPic;
         try {
             wPic = ImageIO.read(getClass().getClassLoader().getResource("AutoShema.jpg"));
-//            wPic = ImageIO.read(new File());
 
             ImageIcon imageIcon = new ImageIcon(wPic); // load the image to a imageIcon
             Image image = imageIcon.getImage(); // transform it
-            Image newimg = image.getScaledInstance(500, 350, java.awt.Image.SCALE_SMOOTH); // scale it the smooth way
+            Image newimg = image.getScaledInstance(500, 350, Image.SCALE_SMOOTH); // scale it the smooth way
             imageIcon = new ImageIcon(newimg);
 
             wIcon = new JLabel(imageIcon);
@@ -108,14 +113,7 @@ public class SearchFrame extends JPanel {
                 g.drawOval(400, 400, 100, 100);
             }
         };
-
-        // TODO fix position
         add(label1);
-        populateDamageReport(null);
-
-
-
-        setVisible(true);
     }
 
     private void initSearchResult() {
@@ -127,7 +125,6 @@ public class SearchFrame extends JPanel {
         tableModel = new SearchResultTableModel(tableData);
         table = new JTable(tableModel);
         table.setAutoCreateRowSorter(true);
-
         table.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
@@ -260,6 +257,10 @@ public class SearchFrame extends JPanel {
         vehicleType.setText("Type : " + (report == null ? "" : "\n" + report.getVehicleInfo().getType()));
         vehicleBodyId.setText("<html>Body ID : " + (report == null ? "" : "<br>" + report.getVehicleInfo().getBodyId())+"</html>");
         damageZone(report == null ? null : report.getDamageInfo());
+        if (report != null) {
+            editBtn.setVisible(true);
+            this.report = report;
+        }
     }
 
     private void damageZone(DamageInfo damageInfo) {
@@ -290,14 +291,6 @@ public class SearchFrame extends JPanel {
     private JLabel zoneLabel(int x, int y, boolean enabled) {
         SelectionPoint selectionPoint13 = new SelectionPoint(enabled);
         JLabel zoneLabel = new JLabel(selectionPoint13);
-
-        zoneLabel.addMouseListener(new MouseAdapter() {
-            @Override
-            public void mouseClicked(MouseEvent e) {
-                selectionPoint13.switchColor();
-                zoneLabel.repaint();
-            }
-        });
         zoneLabel.setBounds(x, y, 25, 25);
         return zoneLabel;
     }

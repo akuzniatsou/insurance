@@ -51,4 +51,8 @@ public class SelectionPoint implements Icon {
     public int getIconHeight() {
         return 25;
     }
+
+    public boolean selected() {
+        return color == Color.red;
+    }
 }

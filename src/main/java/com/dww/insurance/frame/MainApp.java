@@ -1,5 +1,7 @@
 package com.dww.insurance.frame;
 
+import com.dww.insurance.domain.DamageReport;
+
 import javax.swing.*;
 import java.awt.*;
 
@@ -48,9 +50,15 @@ public class MainApp extends JFrame implements IApplication {
     public void edit() {
         setTitle("Edit");
         cardLayout.show(cardPanel, "Edit");
-        editFrame.initialize();
+        editFrame.initialize(null);
     }
 
+    @Override
+    public void edit(DamageReport report) {
+        setTitle("Edit");
+        cardLayout.show(cardPanel, "Edit");
+        editFrame.initialize(report);
+    }
 
     private void initialize() {
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);

@@ -9,9 +9,10 @@ public class DamageReport {
     public DamageReport() {
     }
 
-    public DamageReport(DriverInfo driverInfo, VehicleInfo vehicleInfo) {
+    public DamageReport(DriverInfo driverInfo, VehicleInfo vehicleInfo, DamageInfo damageInfo) {
         this.driverInfo = driverInfo;
         this.vehicleInfo = vehicleInfo;
+        this.damageInfo = damageInfo;
     }
 
     public DriverInfo getDriverInfo() {
