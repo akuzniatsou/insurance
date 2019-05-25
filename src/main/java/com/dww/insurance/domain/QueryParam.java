@@ -3,9 +3,9 @@ package com.dww.insurance.domain;
 public class QueryParam {
     private final String surname;
     private final String ownerId;
-    private final Object bodyId;
+    private final String bodyId;
 
-    public QueryParam(String surname, String ownerId, Object bodyId) {
+    public QueryParam(String surname, String ownerId, String bodyId) {
 
         this.surname = surname;
         this.ownerId = ownerId;
@@ -16,11 +16,11 @@ public class QueryParam {
         return surname;
     }
 
-    public String getOwnerId() {
-        return ownerId;
+    public int getOwnerId() {
+        return ownerId == null || "".equals(ownerId) ? 0 : Integer.valueOf(ownerId);
     }
 
-    public Object getBodyId() {
+    public String getBodyId() {
         return bodyId;
     }
 }

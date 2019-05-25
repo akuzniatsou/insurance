@@ -36,7 +36,7 @@ public class SelectionPoint implements Icon {
     @Override
     public void paintIcon(Component c, Graphics g, int x, int y) {
         Graphics2D g2 = (Graphics2D) g;
-        Ellipse2D.Double circle = new Ellipse2D.Double(0, 0, 20, 20);
+        Ellipse2D.Double circle = new Ellipse2D.Double(0, 0, 25, 25);
         g2.setColor(color);
         g2.setStroke(new BasicStroke(2));
         g2.draw(circle);
@@ -44,11 +44,11 @@ public class SelectionPoint implements Icon {
 
     @Override
     public int getIconWidth() {
-        return 20;
+        return 25;
     }
 
     @Override
     public int getIconHeight() {
-        return 20;
+        return 25;
     }
 }

@@ -4,13 +4,10 @@ import com.dww.insurance.domain.Damage;
 import com.dww.insurance.domain.DamageInfo;
 import com.dww.insurance.domain.DamageReport;
 import com.dww.insurance.domain.DriverInfo;
-import com.dww.insurance.domain.Person;
+import com.dww.insurance.domain.SearchResult;
 import com.dww.insurance.domain.QueryParam;
 import com.dww.insurance.domain.VehicleInfo;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.net.URL;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
@@ -18,25 +15,44 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 import java.util.Properties;
 
 public class SearchRepository {
 
     private Properties props = AppProperties.getInstance().getAppProps();
 
-    public List<Person> find(QueryParam queryParam) {
+    public List<SearchResult> find(QueryParam queryParam) {
         Connection conn = null;
         PreparedStatement stmt = null;
-        String surname = queryParam.getSurname();
         try {
             conn = DriverManager.getConnection(props.getProperty("url"), props.getProperty("user"), props.getProperty("password"));
-            stmt = conn.prepareStatement("SELECT * FROM owner where name LIKE ?");
-            stmt.setString(1, "%" + surname + "%");
+            List<Object> parameters = new ArrayList<>();
+            StringBuilder query = new StringBuilder("select o.id, o.name, o.last_name, v.body_number from owner o join vehicle v on o.id = v.owner_id where 1=1");
+            if (queryParam.getOwnerId() > 0) {
+                query.append(" and o.id = ?");
+                parameters.add(queryParam.getOwnerId());
+            }
+            if (!isBlank(queryParam.getSurname())) {
+                query.append(" and o.last_name like ?");
+                parameters.add(queryParam.getSurname());
+            }
+            if (!isBlank(queryParam.getBodyId())) {
+                query.append(" and v.body_number like ?");
+                parameters.add(queryParam.getBodyId());
+            }
+            stmt = conn.prepareStatement(query.toString());
+            for (int i = 0; i < parameters.size(); i++) {
+                Object parameter = parameters.get(i);
+                if (parameter instanceof String) {
+                    stmt.setObject(i+1, "%" + parameter + "%");
+                } else {
+                    stmt.setObject(i+1, parameter);
+                }
+            }
             ResultSet rs = stmt.executeQuery();
-            List<Person> persons = new ArrayList<>();
+            List<SearchResult> persons = new ArrayList<>();
             while (rs.next()) {
-                persons.add(new Person(rs.getInt(1), rs.getString(2), rs.getString(3)));
+                persons.add(new SearchResult(rs.getInt(1), rs.getString(2), rs.getString(3), rs.getString(4)));
             }
             return persons;
         } catch (SQLException ex) {
@@ -60,20 +76,19 @@ public class SearchRepository {
                 throw new RuntimeException(e);
             }
         }
-
     }
 
-    public List<Person> searchAll() {
+    public List<SearchResult> searchAll() {
         Connection conn = null;
         PreparedStatement stmt = null;
 
         try {
             conn = DriverManager.getConnection(props.getProperty("url"), props.getProperty("user"), props.getProperty("password"));
-            stmt = conn.prepareStatement("SELECT * FROM owner");
+            stmt = conn.prepareStatement("select o.id, o.name, o.last_name, v.body_number from owner o join vehicle v on o.id = v.owner_id");
             ResultSet rs = stmt.executeQuery();
-            List<Person> persons = new ArrayList<>();
+            List<SearchResult> persons = new ArrayList<>();
             while (rs.next()) {
-                persons.add(new Person(rs.getInt(1), rs.getString(2), rs.getString(3)));
+                persons.add(new SearchResult(rs.getInt(1), rs.getString(2), rs.getString(3), rs.getString(4)));
             }
             return persons;
         } catch (SQLException ex) {
@@ -107,7 +122,6 @@ public class SearchRepository {
         try {
             conn = DriverManager.getConnection(props.getProperty("url"), props.getProperty("user"), props.getProperty("password"));
             stmt = conn.prepareStatement("SELECT * FROM owner JOIN vehicle v on owner.id = v.owner_id JOIN damage d on v.id = d.vehicle_id WHERE owner.id = ?");
-//            stmt = conn.prepareStatement("SELECT * FROM owner JOIN vehicle v on owner.id = v.owner_id WHERE owner.id = ?");
             stmt.setInt(1, ownerId);
 
             ResultSet rs = stmt.executeQuery();
@@ -181,6 +195,9 @@ public class SearchRepository {
                 throw new RuntimeException(e);
             }
         }
+    }
 
+    private boolean isBlank(String value) {
+        return value == null || value.length() == 0;
     }
 }
