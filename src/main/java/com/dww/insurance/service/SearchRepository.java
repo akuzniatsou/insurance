@@ -84,7 +84,7 @@ public class SearchRepository {
 
         try {
             conn = DriverManager.getConnection(props.getProperty("url"), props.getProperty("user"), props.getProperty("password"));
-            stmt = conn.prepareStatement("select o.id, o.name, o.last_name, v.body_number from owner o join vehicle v on o.id = v.owner_id");
+            stmt = conn.prepareStatement("select o.id, o.name, o.last_name, v.body_number from owner o join vehicle v on o.id = v.owner_id order by o.id");
             ResultSet rs = stmt.executeQuery();
             List<SearchResult> persons = new ArrayList<>();
             while (rs.next()) {

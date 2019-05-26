@@ -8,6 +8,7 @@ import com.dww.insurance.model.SearchResultTableModel;
 import com.dww.insurance.service.SearchRepository;
 
 import javax.imageio.ImageIO;
+import javax.naming.ldap.SortKey;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
