@@ -7,6 +7,7 @@ import com.dww.insurance.domain.DriverInfo;
 import com.dww.insurance.domain.SearchResult;
 import com.dww.insurance.domain.QueryParam;
 import com.dww.insurance.domain.VehicleInfo;
+import com.dww.insurance.domain.VehicleType;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -128,7 +129,7 @@ public class SearchRepository {
 
                 VehicleInfo vehicleInfo = new VehicleInfo();
                 vehicleInfo.setId(rs.getInt(7));
-                vehicleInfo.setType(rs.getString(9));
+                vehicleInfo.setType(VehicleType.valueOf(rs.getString(9)));
                 vehicleInfo.setNumber(rs.getString(10));
                 vehicleInfo.setBodyId(rs.getString(11));
                 vehicleInfo.setModel(rs.getString(12));

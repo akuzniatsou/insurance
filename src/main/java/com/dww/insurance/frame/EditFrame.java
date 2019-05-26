@@ -60,7 +60,7 @@ public class EditFrame extends JPanel {
     public EditFrame(IApplication app) {
         this.app = app;
         driverRepository = new DriverRepository();
-        initialize(null);
+        initialize(new DamageReport());
     }
 
     public void initialize(DamageReport report) {
@@ -85,11 +85,11 @@ public class EditFrame extends JPanel {
 
         driverInfoPanel.add(title);
         driverInfoPanel.add(new JSeparator());
-        driverInfoPanel.add("Surname", createComponent("Surname", report == null ? "" : report.getDriverInfo().getLastName(), lastNameTextField));
-        driverInfoPanel.add("Name", createComponent("Name", report == null ? "" : report.getDriverInfo().getName(), nameTextField));
-        driverInfoPanel.add(createComponent("Address", report == null ? "" : report.getDriverInfo().getAddress(), addressTextField));
-        driverInfoPanel.add(createComponent("Phone", report == null ? "" : report.getDriverInfo().getPhone(), phoneTextField));
-        driverInfoPanel.add(createComponent("Pass ID", report == null ? "" : report.getDriverInfo().getPassId(), passIdTextField));
+        driverInfoPanel.add("Surname", createComponent("Surname", report.getDriverInfo().getLastName(), lastNameTextField));
+        driverInfoPanel.add("Name", createComponent("Name", report.getDriverInfo().getName(), nameTextField));
+        driverInfoPanel.add(createComponent("Address", report.getDriverInfo().getAddress(), addressTextField));
+        driverInfoPanel.add(createComponent("Phone", report.getDriverInfo().getPhone(), phoneTextField));
+        driverInfoPanel.add(createComponent("Pass ID", report.getDriverInfo().getPassId(), passIdTextField));
         driverInfoPanel.setVisible(true);
         add(driverInfoPanel);
     }
@@ -104,15 +104,15 @@ public class EditFrame extends JPanel {
 
         JPanel type = new JPanel(new BorderLayout());
         vehicleTypeComboBox = new JComboBox<>(VehicleType.values());
-        vehicleTypeComboBox.setSelectedItem(report == null ? null : VehicleType.valueOf(report.getVehicleInfo().getType()));
+        vehicleTypeComboBox.setSelectedItem(report.getVehicleInfo().getType());
         type.add(vehicleTypeComboBox);
 
         panel.add(title);
         panel.add(new JSeparator());
-        panel.add(createComponent("Model", report == null ? "" : report.getVehicleInfo().getModel(), vehicleModelTextField));
+        panel.add(createComponent("Model", report.getVehicleInfo().getModel(), vehicleModelTextField));
         panel.add(type);
-        panel.add(createComponent("Number", report == null ? "" : report.getVehicleInfo().getNumber(), vehicleNumberTextField));
-        panel.add(createComponent("Body ID", report == null ? "" : report.getVehicleInfo().getBodyId(), vehicleBodyIdTextField));
+        panel.add(createComponent("Number", report.getVehicleInfo().getNumber(), vehicleNumberTextField));
+        panel.add(createComponent("Body ID", report.getVehicleInfo().getBodyId(), vehicleBodyIdTextField));
 
         panel.setVisible(true);
         add(panel);
@@ -161,7 +161,7 @@ public class EditFrame extends JPanel {
                 g.drawOval(400, 400, 100, 100);
             }
         };
-        damageZone(report == null ? null : report.getDamageInfo());
+        damageZone(report.getDamageInfo());
         add(label1);
     }
 
@@ -247,7 +247,7 @@ public class EditFrame extends JPanel {
         vehicleInfo.setOwner_id(report == null ? 0 : report.getDriverInfo().getId());
         vehicleInfo.setId(report == null ? 0 : report.getVehicleInfo().getId());
         vehicleInfo.setModel(vehicleModelTextField.getText());
-        vehicleInfo.setType(vehicleTypeComboBox.getSelectedItem().toString());
+        vehicleInfo.setType(VehicleType.valueOf(vehicleTypeComboBox.getSelectedItem().toString()));
         vehicleInfo.setNumber(vehicleNumberTextField.getText());
         vehicleInfo.setBodyId(vehicleBodyIdTextField.getText());
 

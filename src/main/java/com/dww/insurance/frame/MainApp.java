@@ -50,7 +50,7 @@ public class MainApp extends JFrame implements IApplication {
     public void edit() {
         setTitle("Edit");
         cardLayout.show(cardPanel, "Edit");
-        editFrame.initialize(null);
+        editFrame.initialize(new DamageReport());
     }
 
     @Override

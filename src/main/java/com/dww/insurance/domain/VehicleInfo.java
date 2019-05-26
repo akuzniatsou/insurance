@@ -5,7 +5,7 @@ public class VehicleInfo {
     private int id;
     private int owner_id;
     private String model;
-    private String type;
+    private VehicleType type;
     private String number;
     private String bodyId;
 
@@ -25,11 +25,11 @@ public class VehicleInfo {
         this.model = model;
     }
 
-    public String getType() {
+    public VehicleType getType() {
         return type;
     }
 
-    public void setType(String type) {
+    public void setType(VehicleType type) {
         this.type = type;
     }
 

@@ -87,7 +87,7 @@ public class DriverRepository {
             conn = DriverManager.getConnection(props.getProperty("url"), props.getProperty("user"), props.getProperty("password"));
             stmt = conn.prepareStatement("INSERT INTO vehicle (owner_id, type, body_number, model, number) VALUES (?,?,?,?,?)", Statement.RETURN_GENERATED_KEYS);
             stmt.setInt(1, driverId);
-            stmt.setString(2, vehicleInfo.getType());
+            stmt.setString(2, vehicleInfo.getType().name());
             stmt.setString(3, vehicleInfo.getBodyId());
             stmt.setString(4, vehicleInfo.getModel());
             stmt.setString(5, vehicleInfo.getNumber());
@@ -111,7 +111,7 @@ public class DriverRepository {
         try {
             conn = DriverManager.getConnection(props.getProperty("url"), props.getProperty("user"), props.getProperty("password"));
             stmt = conn.prepareStatement("UPDATE vehicle SET type = ?, body_number = ?, model = ?, number = ? WHERE id = ? AND owner_id = ?");
-            stmt.setString(1, vehicleInfo.getType());
+            stmt.setString(1, vehicleInfo.getType().name());
             stmt.setString(2, vehicleInfo.getBodyId());
             stmt.setString(3, vehicleInfo.getModel());
             stmt.setString(4, vehicleInfo.getNumber());
