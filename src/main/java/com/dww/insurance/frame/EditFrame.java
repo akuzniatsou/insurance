@@ -1,7 +1,5 @@
 package com.dww.insurance.frame;
 
-import static java.lang.String.format;
-
 import com.dww.insurance.domain.Damage;
 import com.dww.insurance.domain.DamageInfo;
 import com.dww.insurance.domain.DamageReport;
@@ -27,10 +25,6 @@ public class EditFrame extends JPanel {
     private static final int BASE_LINE = 180;
     private static final int BASE_HEIGHT = 20;
 
-    private JTextField ownerIdTextField = new JTextField();
-    private JTextField vehicleIdTextField = new JTextField();
-    private JTextField damageInfoIdTextField = new JTextField();
-    private JTextField surnameTextField = new JTextField(22);
     private JTextField nameTextField = new JTextField(22);
     private JTextField lastNameTextField = new JTextField(22);
     private JTextField passIdTextField = new JTextField(22);
@@ -90,7 +84,7 @@ public class EditFrame extends JPanel {
 
         driverInfoPanel.add(title);
         driverInfoPanel.add(new JSeparator());
-        driverInfoPanel.add("Surname", createComponent("Surname", report == null ? "" : report.getDriverInfo().getLastName(), surnameTextField));
+        driverInfoPanel.add("Surname", createComponent("Surname", report == null ? "" : report.getDriverInfo().getLastName(), lastNameTextField));
         driverInfoPanel.add("Name", createComponent("Name", report == null ? "" : report.getDriverInfo().getName(), nameTextField));
         driverInfoPanel.add(createComponent("Address", report == null ? "" : report.getDriverInfo().getAddress(), addressTextField));
         driverInfoPanel.add(createComponent("Phone", report == null ? "" : report.getDriverInfo().getPhone(), phoneTextField));
@@ -235,14 +229,14 @@ public class EditFrame extends JPanel {
 
     private DamageReport buildDamageReport() {
         DriverInfo driverInfo = new DriverInfo();
-        if (empty(nameTextField, surnameTextField, addressTextField, phoneTextField, passIdTextField,
+        if (empty(nameTextField, lastNameTextField, addressTextField, phoneTextField, passIdTextField,
             vehicleBodyIdTextField, vehicleModelTextField)) {
             JOptionPane.showMessageDialog(this, "Please fill all fields", "Error", JOptionPane.ERROR_MESSAGE);
             return null;
         }
         driverInfo.setId(report == null ? 0 : report.getDriverInfo().getId());
         driverInfo.setName(nameTextField.getText());
-        driverInfo.setLastName(surnameTextField.getText());
+        driverInfo.setLastName(lastNameTextField.getText());
         driverInfo.setAddress(addressTextField.getText());
         driverInfo.setPhone(phoneTextField.getText());
         driverInfo.setPassId(passIdTextField.getText());

@@ -18,7 +18,6 @@ public class DriverRepository {
 
     private Properties props = AppProperties.getInstance().getAppProps();
 
-
     public int insertDriverInfo(DriverInfo driverInfo) {
         Connection conn = null;
         PreparedStatement stmt = null;
@@ -39,22 +38,7 @@ public class DriverRepository {
             ex.printStackTrace();
             throw new RuntimeException(ex);
         } finally {
-            try {
-                if (stmt != null) {
-                    stmt.close();
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
-                throw new RuntimeException(e);
-            }
-            try {
-                if (conn != null) {
-                    conn.close();
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
-                throw new RuntimeException(e);
-            }
+            closeConnection(conn, stmt);
         }
     }
 
@@ -75,22 +59,23 @@ public class DriverRepository {
             ex.printStackTrace();
             throw new RuntimeException(ex);
         } finally {
-            try {
-                if (stmt != null) {
-                    stmt.close();
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
-                throw new RuntimeException(e);
-            }
-            try {
-                if (conn != null) {
-                    conn.close();
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
-                throw new RuntimeException(e);
-            }
+            closeConnection(conn, stmt);
+        }
+    }
+
+    public void deleteDriverInfo(int driverInfoId) {
+        Connection conn = null;
+        PreparedStatement stmt = null;
+        try {
+            conn = DriverManager.getConnection(props.getProperty("url"), props.getProperty("user"), props.getProperty("password"));
+            stmt = conn.prepareStatement("DELETE FROM owner WHERE id = ?");
+            stmt.setInt(1, driverInfoId);
+            stmt.executeUpdate();
+        } catch (SQLException ex) {
+            ex.printStackTrace();
+            throw new RuntimeException(ex);
+        } finally {
+            closeConnection(conn, stmt);
         }
     }
 
@@ -115,22 +100,7 @@ public class DriverRepository {
             ex.printStackTrace();
             throw new RuntimeException(ex);
         } finally {
-            try {
-                if (stmt != null) {
-                    stmt.close();
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
-                throw new RuntimeException(e);
-            }
-            try {
-                if (conn != null) {
-                    conn.close();
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
-                throw new RuntimeException(e);
-            }
+            closeConnection(conn, stmt);
         }
     }
 
@@ -154,22 +124,23 @@ public class DriverRepository {
             ex.printStackTrace();
             throw new RuntimeException(ex);
         } finally {
-            try {
-                if (stmt != null) {
-                    stmt.close();
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
-                throw new RuntimeException(e);
-            }
-            try {
-                if (conn != null) {
-                    conn.close();
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
-                throw new RuntimeException(e);
-            }
+            closeConnection(conn, stmt);
+        }
+    }
+
+    public void deleteVehicleInfo(int vehicleInfoId) {
+        Connection conn = null;
+        PreparedStatement stmt = null;
+        try {
+            conn = DriverManager.getConnection(props.getProperty("url"), props.getProperty("user"), props.getProperty("password"));
+            stmt = conn.prepareStatement("DELETE FROM vehicle WHERE id = ?");
+            stmt.setInt(1, vehicleInfoId);
+            stmt.executeUpdate();
+        } catch (SQLException ex) {
+            ex.printStackTrace();
+            throw new RuntimeException(ex);
+        } finally {
+            closeConnection(conn, stmt);
         }
     }
 
@@ -200,22 +171,7 @@ public class DriverRepository {
             ex.printStackTrace();
             throw new RuntimeException(ex);
         } finally {
-            try {
-                if (stmt != null) {
-                    stmt.close();
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
-                throw new RuntimeException(e);
-            }
-            try {
-                if (conn != null) {
-                    conn.close();
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
-                throw new RuntimeException(e);
-            }
+            closeConnection(conn, stmt);
         }
     }
 
@@ -247,22 +203,43 @@ public class DriverRepository {
             ex.printStackTrace();
             throw new RuntimeException(ex);
         } finally {
-            try {
-                if (stmt != null) {
-                    stmt.close();
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
-                throw new RuntimeException(e);
+            closeConnection(conn, stmt);
+        }
+    }
+
+    public void deleteDamageInfo(int damageInfoId) {
+        Connection conn = null;
+        PreparedStatement stmt = null;
+
+        try {
+            conn = DriverManager.getConnection(props.getProperty("url"), props.getProperty("user"), props.getProperty("password"));
+            stmt = conn.prepareStatement("DELETE FROM damage WHERE id = ?");
+            stmt.setInt(1, damageInfoId);
+            stmt.executeUpdate();
+        } catch (SQLException ex) {
+            ex.printStackTrace();
+            throw new RuntimeException(ex);
+        } finally {
+            closeConnection(conn, stmt);
+        }
+    }
+
+    private void closeConnection(Connection conn, PreparedStatement stmt) {
+        try {
+            if (stmt != null) {
+                stmt.close();
             }
-            try {
-                if (conn != null) {
-                    conn.close();
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
-                throw new RuntimeException(e);
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new RuntimeException(e);
+        }
+        try {
+            if (conn != null) {
+                conn.close();
             }
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new RuntimeException(e);
         }
     }
 }

@@ -5,10 +5,10 @@ import com.dww.insurance.domain.DamageReport;
 import com.dww.insurance.domain.QueryParam;
 import com.dww.insurance.domain.SearchResult;
 import com.dww.insurance.model.SearchResultTableModel;
+import com.dww.insurance.service.DriverRepository;
 import com.dww.insurance.service.SearchRepository;
 
 import javax.imageio.ImageIO;
-import javax.naming.ldap.SortKey;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
@@ -24,10 +24,12 @@ public class SearchFrame extends JPanel {
     private static final int BASE_WIDTH = 240;
     private static final int BASE_HEIGHT = 20;
 
+    private final DriverRepository driverRepository;
+    private final SearchRepository searchRepository;
+
     private JTextField surnameTextField;
     private JTextField ownerTextField;
     private JTextField bodyTextField;
-    private SearchRepository searchRepository;
     private DefaultListModel<SearchResult> listModel = new DefaultListModel<>();
     private IApplication app;
 
@@ -41,17 +43,16 @@ public class SearchFrame extends JPanel {
     private JLabel vehicleBodyId;
 
     private DamageReport report;
-    private JButton editBtn;
+    private JPanel bottomPanel;
     private JLabel wIcon;
 
-    private SearchResultTableModel tableModel;
-    private List<SearchResult> tableData;
-    JTable table;
+    private JTable table;
 
 
     public SearchFrame(IApplication app) {
         this.app = app;
         searchRepository = new SearchRepository();
+        driverRepository = new DriverRepository();
         initialize();
     }
 
@@ -63,20 +64,28 @@ public class SearchFrame extends JPanel {
         initDriverInfoTab();
         initVehicleTab();
         initDamageInfoTab();
-        initEditBnt();
+        initBottomPanel();
         populateDamageReport(null);
         setVisible(true);
     }
 
-    private void initEditBnt() {
-        editBtn = new JButton("Edit");
-        editBtn.setBounds(90, 520, 100, 25);
+    private void initBottomPanel() {
+        bottomPanel = new JPanel(new FlowLayout());
+        bottomPanel.setBounds(90, 520, 200, 40);
+        bottomPanel.setVisible(false);
+
+        JButton editBtn = new JButton("Edit");
         editBtn.addActionListener(event -> {
             SearchFrame.this.updateUI();
             app.edit(report);
         });
-        editBtn.setVisible(false);
-        add(editBtn);
+        JButton deleteButton = new JButton("Delete");
+        deleteButton.setBackground(new Color(250, 128, 114));
+        deleteButton.addActionListener(event -> delete());
+
+        bottomPanel.add(editBtn);
+        bottomPanel.add(deleteButton);
+        add(bottomPanel);
     }
 
     private void initDamageInfoTab() {
@@ -122,8 +131,8 @@ public class SearchFrame extends JPanel {
         searchResultSeparator.setBounds(5, 50, 785, 2);
         add(searchResultSeparator);
 
-        tableData = new ArrayList<>();
-        tableModel = new SearchResultTableModel(tableData);
+        List<SearchResult> tableData = new ArrayList<>();
+        SearchResultTableModel tableModel = new SearchResultTableModel(tableData);
         table = new JTable(tableModel);
         table.setAutoCreateRowSorter(true);
         table.addMouseListener(new MouseAdapter() {
@@ -170,19 +179,19 @@ public class SearchFrame extends JPanel {
 
     private void initVehicleTab() {
         JLabel lblVehicleInfo = new JLabel("Vehicle Info:");
-        lblVehicleInfo.setBounds(20, 340, 200, 20);
+        lblVehicleInfo.setBounds(20, 340, BASE_WIDTH, 20);
         add(lblVehicleInfo);
 
         vehicleModel = new JLabel();
-        vehicleModel.setBounds(20, 360, 200, 20);
+        vehicleModel.setBounds(20, 360, BASE_WIDTH, 20);
         add(vehicleModel);
 
         vehicleType = new JLabel();
-        vehicleType.setBounds(20, 380, 200, 20);
+        vehicleType.setBounds(20, 380, BASE_WIDTH, 20);
         add(vehicleType);
 
         vehicleBodyId = new JLabel();
-        vehicleBodyId.setBounds(20, 400, 200, 40);
+        vehicleBodyId.setBounds(20, 400, BASE_WIDTH, 40);
         add(vehicleBodyId);
     }
 
@@ -242,6 +251,21 @@ public class SearchFrame extends JPanel {
         }
     }
 
+    private void delete() {
+        if (report != null) {
+            int confirmDialog = JOptionPane.showConfirmDialog(
+                this, "Are you sure to delete it?", "Please confirm", JOptionPane.YES_NO_OPTION);
+            if (confirmDialog == JOptionPane.YES_OPTION) {
+                driverRepository.deleteDamageInfo(report.getDamageInfo().getId());
+                driverRepository.deleteVehicleInfo(report.getVehicleInfo().getId());
+                driverRepository.deleteDriverInfo(report.getDriverInfo().getId());
+                bottomPanel.setVisible(false);
+                initialize();
+                search();
+            }
+        }
+    }
+
     private void searchDriverInfo(int personId) {
         DamageReport damageReport = searchRepository.searchDriverInfo(personId);
         populateDamageReport(damageReport);
@@ -259,7 +283,7 @@ public class SearchFrame extends JPanel {
         vehicleBodyId.setText("<html>Body ID : " + (report == null ? "" : "<br>" + report.getVehicleInfo().getBodyId())+"</html>");
         damageZone(report == null ? null : report.getDamageInfo());
         if (report != null) {
-            editBtn.setVisible(true);
+            bottomPanel.setVisible(true);
             this.report = report;
         }
     }

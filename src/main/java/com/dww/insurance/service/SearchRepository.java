@@ -59,22 +59,26 @@ public class SearchRepository {
             ex.printStackTrace();
             throw new RuntimeException(ex);
         } finally {
-            try {
-                if (stmt != null) {
-                    stmt.close();
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
-                throw new RuntimeException(e);
+            closeConnection(conn, stmt);
+        }
+    }
+
+    private void closeConnection(Connection conn, PreparedStatement stmt) {
+        try {
+            if (stmt != null) {
+                stmt.close();
             }
-            try {
-                if (conn != null) {
-                    conn.close();
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
-                throw new RuntimeException(e);
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new RuntimeException(e);
+        }
+        try {
+            if (conn != null) {
+                conn.close();
             }
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new RuntimeException(e);
         }
     }
 
@@ -95,22 +99,7 @@ public class SearchRepository {
             ex.printStackTrace();
             throw new RuntimeException(ex);
         } finally {
-            try {
-                if (stmt != null) {
-                    stmt.close();
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
-                throw new RuntimeException(e);
-            }
-            try {
-                if (conn != null) {
-                    conn.close();
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
-                throw new RuntimeException(e);
-            }
+            closeConnection(conn, stmt);
         }
 
     }
@@ -178,22 +167,7 @@ public class SearchRepository {
             ex.printStackTrace();
             throw new RuntimeException(ex);
         } finally {
-            try {
-                if (stmt != null) {
-                    stmt.close();
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
-                throw new RuntimeException(e);
-            }
-            try {
-                if (conn != null) {
-                    conn.close();
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
-                throw new RuntimeException(e);
-            }
+            closeConnection(conn, stmt);
         }
     }
 
