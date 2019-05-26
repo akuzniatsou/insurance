@@ -129,6 +129,7 @@ public class SearchRepository {
                 VehicleInfo vehicleInfo = new VehicleInfo();
                 vehicleInfo.setId(rs.getInt(7));
                 vehicleInfo.setType(rs.getString(9));
+                vehicleInfo.setNumber(rs.getString(10));
                 vehicleInfo.setBodyId(rs.getString(11));
                 vehicleInfo.setModel(rs.getString(12));
 

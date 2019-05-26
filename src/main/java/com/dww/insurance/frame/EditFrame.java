@@ -31,6 +31,7 @@ public class EditFrame extends JPanel {
     private JTextField addressTextField = new JTextField(22);
     private JTextField phoneTextField = new JTextField(22);
     private JTextField vehicleModelTextField = new JTextField(22);
+    private JTextField vehicleNumberTextField = new JTextField(22);
     private JTextField vehicleBodyIdTextField = new JTextField(22);
 
     private JLabel wIcon;
@@ -95,7 +96,7 @@ public class EditFrame extends JPanel {
 
     private void initVehicleInfoTab() {
         JPanel panel = new JPanel();
-        panel.setBounds(400, 8, 350, 95);
+        panel.setBounds(400, 8, 350, 125);
         panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
 
         JPanel title = new JPanel(new BorderLayout());
@@ -110,6 +111,7 @@ public class EditFrame extends JPanel {
         panel.add(new JSeparator());
         panel.add(createComponent("Model", report == null ? "" : report.getVehicleInfo().getModel(), vehicleModelTextField));
         panel.add(type);
+        panel.add(createComponent("Number", report == null ? "" : report.getVehicleInfo().getNumber(), vehicleNumberTextField));
         panel.add(createComponent("Body ID", report == null ? "" : report.getVehicleInfo().getBodyId(), vehicleBodyIdTextField));
 
         panel.setVisible(true);
@@ -230,7 +232,7 @@ public class EditFrame extends JPanel {
     private DamageReport buildDamageReport() {
         DriverInfo driverInfo = new DriverInfo();
         if (empty(nameTextField, lastNameTextField, addressTextField, phoneTextField, passIdTextField,
-            vehicleBodyIdTextField, vehicleModelTextField)) {
+            vehicleBodyIdTextField, vehicleNumberTextField, vehicleModelTextField)) {
             JOptionPane.showMessageDialog(this, "Please fill all fields", "Error", JOptionPane.ERROR_MESSAGE);
             return null;
         }
@@ -246,6 +248,7 @@ public class EditFrame extends JPanel {
         vehicleInfo.setId(report == null ? 0 : report.getVehicleInfo().getId());
         vehicleInfo.setModel(vehicleModelTextField.getText());
         vehicleInfo.setType(vehicleTypeComboBox.getSelectedItem().toString());
+        vehicleInfo.setNumber(vehicleNumberTextField.getText());
         vehicleInfo.setBodyId(vehicleBodyIdTextField.getText());
 
         DamageInfo damageInfo = new DamageInfo();

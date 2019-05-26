@@ -6,6 +6,7 @@ public class VehicleInfo {
     private int owner_id;
     private String model;
     private String type;
+    private String number;
     private String bodyId;
 
     public int getId() {
@@ -38,6 +39,14 @@ public class VehicleInfo {
 
     public void setBodyId(String bodyId) {
         this.bodyId = bodyId;
+    }
+
+    public String getNumber() {
+        return number;
+    }
+
+    public void setNumber(String number) {
+        this.number = number;
     }
 
     public int getOwner_id() {

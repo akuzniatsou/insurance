@@ -90,8 +90,7 @@ public class DriverRepository {
             stmt.setString(2, vehicleInfo.getType());
             stmt.setString(3, vehicleInfo.getBodyId());
             stmt.setString(4, vehicleInfo.getModel());
-            stmt.setString(5, String.valueOf(9999 - new Random().nextInt(999)));
-
+            stmt.setString(5, vehicleInfo.getNumber());
             stmt.executeUpdate();
             ResultSet rs = stmt.getGeneratedKeys();
             rs.next();
@@ -115,10 +114,9 @@ public class DriverRepository {
             stmt.setString(1, vehicleInfo.getType());
             stmt.setString(2, vehicleInfo.getBodyId());
             stmt.setString(3, vehicleInfo.getModel());
-            stmt.setString(4, String.valueOf(9999 - new Random().nextInt(999)));
+            stmt.setString(4, vehicleInfo.getNumber());
             stmt.setInt(5, vehicleInfo.getId());
             stmt.setInt(6, vehicleInfo.getOwner_id());
-
             stmt.executeUpdate();
         } catch (SQLException ex) {
             ex.printStackTrace();

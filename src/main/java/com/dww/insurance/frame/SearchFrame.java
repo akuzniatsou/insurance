@@ -40,6 +40,7 @@ public class SearchFrame extends JPanel {
     private JLabel driverPhone;
     private JLabel vehicleModel;
     private JLabel vehicleType;
+    private JLabel vehicleNumber;
     private JLabel vehicleBodyId;
 
     private DamageReport report;
@@ -190,8 +191,12 @@ public class SearchFrame extends JPanel {
         vehicleType.setBounds(20, 380, BASE_WIDTH, 20);
         add(vehicleType);
 
+        vehicleNumber = new JLabel();
+        vehicleNumber.setBounds(20, 400, BASE_WIDTH, 20);
+        add(vehicleNumber);
+
         vehicleBodyId = new JLabel();
-        vehicleBodyId.setBounds(20, 400, BASE_WIDTH, 40);
+        vehicleBodyId.setBounds(20, 420, BASE_WIDTH, 40);
         add(vehicleBodyId);
     }
 
@@ -280,6 +285,7 @@ public class SearchFrame extends JPanel {
 
         vehicleModel.setText("Model : " + (report == null ? "" : "\n" + report.getVehicleInfo().getModel()));
         vehicleType.setText("Type : " + (report == null ? "" : "\n" + report.getVehicleInfo().getType()));
+        vehicleNumber.setText("Number : " + (report == null ? "" : "\n" + report.getVehicleInfo().getNumber()));
         vehicleBodyId.setText("<html>Body ID : " + (report == null ? "" : "<br>" + report.getVehicleInfo().getBodyId())+"</html>");
         damageZone(report == null ? null : report.getDamageInfo());
         if (report != null) {
