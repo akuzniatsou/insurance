@@ -27,7 +27,9 @@ public class EditFrame extends JPanel {
     private static final int BASE_LINE = 180;
     private static final int BASE_HEIGHT = 20;
 
-    private JTextField ownerIdTextField = new JTextField(22);
+    private JTextField ownerIdTextField = new JTextField();
+    private JTextField vehicleIdTextField = new JTextField();
+    private JTextField damageInfoIdTextField = new JTextField();
     private JTextField surnameTextField = new JTextField(22);
     private JTextField nameTextField = new JTextField(22);
     private JTextField lastNameTextField = new JTextField(22);
@@ -58,6 +60,8 @@ public class EditFrame extends JPanel {
     private DriverRepository driverRepository;
     private IApplication app;
 
+    private DamageReport report;
+
     public EditFrame(IApplication app) {
         this.app = app;
         driverRepository = new DriverRepository();
@@ -67,16 +71,16 @@ public class EditFrame extends JPanel {
     public void initialize(DamageReport report) {
         removeAll();
         setLayout(null);
-
-        initDriverInfoTab(report == null ? null : report.getDriverInfo());
-        initVehicleInfoTab(report == null ? null : report.getVehicleInfo());
-        initDamageInfoTab(report == null ? null : report.getDamageInfo());
+        this.report = report;
+        initDriverInfoTab();
+        initVehicleInfoTab();
+        initDamageInfoTab();
         initBottomPanel();
 
         setVisible(true);
     }
 
-    private void initDriverInfoTab(DriverInfo driverInfo) {
+    private void initDriverInfoTab() {
         JPanel driverInfoPanel = new JPanel();
         driverInfoPanel.setBounds(20, 5, 350, 150);
         driverInfoPanel.setLayout(new BoxLayout(driverInfoPanel, BoxLayout.Y_AXIS));
@@ -86,16 +90,16 @@ public class EditFrame extends JPanel {
 
         driverInfoPanel.add(title);
         driverInfoPanel.add(new JSeparator());
-        driverInfoPanel.add("Surname", createComponent("Surname", driverInfo == null ? "" : driverInfo.getLastName(), surnameTextField));
-        driverInfoPanel.add("Name", createComponent("Name", driverInfo == null ? "" : driverInfo.getName(), nameTextField));
-        driverInfoPanel.add(createComponent("Address", driverInfo == null ? "" : driverInfo.getAddress(), addressTextField));
-        driverInfoPanel.add(createComponent("Phone", driverInfo == null ? "" : driverInfo.getPhone(), phoneTextField));
-        driverInfoPanel.add(createComponent("Pass ID", driverInfo == null ? "" : driverInfo.getPassId(), passIdTextField));
+        driverInfoPanel.add("Surname", createComponent("Surname", report == null ? "" : report.getDriverInfo().getLastName(), surnameTextField));
+        driverInfoPanel.add("Name", createComponent("Name", report == null ? "" : report.getDriverInfo().getName(), nameTextField));
+        driverInfoPanel.add(createComponent("Address", report == null ? "" : report.getDriverInfo().getAddress(), addressTextField));
+        driverInfoPanel.add(createComponent("Phone", report == null ? "" : report.getDriverInfo().getPhone(), phoneTextField));
+        driverInfoPanel.add(createComponent("Pass ID", report == null ? "" : report.getDriverInfo().getPassId(), passIdTextField));
         driverInfoPanel.setVisible(true);
         add(driverInfoPanel);
     }
 
-    private void initVehicleInfoTab(VehicleInfo vehicleInfo) {
+    private void initVehicleInfoTab() {
         JPanel panel = new JPanel();
         panel.setBounds(400, 8, 350, 95);
         panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
@@ -105,14 +109,14 @@ public class EditFrame extends JPanel {
 
         JPanel type = new JPanel(new BorderLayout());
         vehicleTypeComboBox = new JComboBox<>(VehicleType.values());
-        vehicleTypeComboBox.setSelectedItem(vehicleInfo == null ? null : VehicleType.valueOf(vehicleInfo.getType()));
+        vehicleTypeComboBox.setSelectedItem(report == null ? null : VehicleType.valueOf(report.getVehicleInfo().getType()));
         type.add(vehicleTypeComboBox);
 
         panel.add(title);
         panel.add(new JSeparator());
-        panel.add(createComponent("Model", vehicleInfo == null ? "" : vehicleInfo.getModel(), vehicleModelTextField));
+        panel.add(createComponent("Model", report == null ? "" : report.getVehicleInfo().getModel(), vehicleModelTextField));
         panel.add(type);
-        panel.add(createComponent("Body ID", vehicleInfo == null ? "" : vehicleInfo.getBodyId(), vehicleBodyIdTextField));
+        panel.add(createComponent("Body ID", report == null ? "" : report.getVehicleInfo().getBodyId(), vehicleBodyIdTextField));
 
         panel.setVisible(true);
         add(panel);
@@ -126,7 +130,7 @@ public class EditFrame extends JPanel {
         return panel;
     }
 
-    private void initDamageInfoTab(DamageInfo damageInfo) {
+    private void initDamageInfoTab() {
         JLabel lblDamage = new JLabel("Damage Info:");
         lblDamage.setBounds(20, BASE_LINE, 100, BASE_HEIGHT);
         add(lblDamage);
@@ -161,7 +165,7 @@ public class EditFrame extends JPanel {
                 g.drawOval(400, 400, 100, 100);
             }
         };
-        damageZone(damageInfo);
+        damageZone(report == null ? null : report.getDamageInfo());
         add(label1);
     }
 
@@ -236,6 +240,7 @@ public class EditFrame extends JPanel {
             JOptionPane.showMessageDialog(this, "Please fill all fields", "Error", JOptionPane.ERROR_MESSAGE);
             return null;
         }
+        driverInfo.setId(report == null ? 0 : report.getDriverInfo().getId());
         driverInfo.setName(nameTextField.getText());
         driverInfo.setLastName(surnameTextField.getText());
         driverInfo.setAddress(addressTextField.getText());
@@ -243,11 +248,14 @@ public class EditFrame extends JPanel {
         driverInfo.setPassId(passIdTextField.getText());
 
         VehicleInfo vehicleInfo = new VehicleInfo();
+        vehicleInfo.setOwner_id(report == null ? 0 : report.getDriverInfo().getId());
+        vehicleInfo.setId(report == null ? 0 : report.getVehicleInfo().getId());
         vehicleInfo.setModel(vehicleModelTextField.getText());
         vehicleInfo.setType(vehicleTypeComboBox.getSelectedItem().toString());
         vehicleInfo.setBodyId(vehicleBodyIdTextField.getText());
 
         DamageInfo damageInfo = new DamageInfo();
+        damageInfo.setId(report == null ? 0 : report.getDamageInfo().getId());
         damageInfo.setDamage(new Damage(new boolean[]{
             ((SelectionPoint) zone01.getIcon()).selected(),
             ((SelectionPoint) zone02.getIcon()).selected(),
@@ -281,9 +289,17 @@ public class EditFrame extends JPanel {
         return event -> {
             DamageReport damageReport = buildDamageReport();
             if (Objects.nonNull(damageReport)) {
-                int driverId = driverRepository.insertDriverInfo(damageReport.getDriverInfo());
-                int vehicleId = driverRepository.insertVehicleInfo(driverId, damageReport.getVehicleInfo());
-                driverRepository.insertDamageInfo(vehicleId, damageReport.getDamageInfo());
+                if (damageReport.getDriverInfo().getId() == 0) {
+                    int driverId = driverRepository.insertDriverInfo(damageReport.getDriverInfo());
+                    int vehicleId = driverRepository.insertVehicleInfo(driverId, damageReport.getVehicleInfo());
+                    driverRepository.insertDamageInfo(vehicleId, damageReport.getDamageInfo());
+                } else {
+                    driverRepository.updateDriverInfo(damageReport.getDriverInfo());
+                    driverRepository.updateVehicleInfo(damageReport.getVehicleInfo());
+                    driverRepository.updateDamageInfo(damageReport.getVehicleInfo().getId(), damageReport.getDamageInfo());
+
+                }
+
                 app.search();
             }
         };

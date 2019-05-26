@@ -13,7 +13,6 @@ import java.sql.Statement;
 import java.sql.Date;
 import java.util.Properties;
 import java.util.Random;
-import java.util.UUID;
 
 public class DriverRepository {
 
@@ -36,6 +35,42 @@ public class DriverRepository {
             rs.next();
             return rs.getInt(1);
 
+        } catch (SQLException ex) {
+            ex.printStackTrace();
+            throw new RuntimeException(ex);
+        } finally {
+            try {
+                if (stmt != null) {
+                    stmt.close();
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+                throw new RuntimeException(e);
+            }
+            try {
+                if (conn != null) {
+                    conn.close();
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+                throw new RuntimeException(e);
+            }
+        }
+    }
+
+    public void updateDriverInfo(DriverInfo driverInfo) {
+        Connection conn = null;
+        PreparedStatement stmt = null;
+        try {
+            conn = DriverManager.getConnection(props.getProperty("url"), props.getProperty("user"), props.getProperty("password"));
+            stmt = conn.prepareStatement("UPDATE owner SET name = ?, pass_id = ?, last_name = ?, address = ?, phone = ? WHERE id = ?");
+            stmt.setString(1, driverInfo.getName());
+            stmt.setString(2, driverInfo.getPassId());
+            stmt.setString(3, driverInfo.getLastName());
+            stmt.setString(4, driverInfo.getAddress());
+            stmt.setString(5, driverInfo.getPhone());
+            stmt.setInt(6, driverInfo.getId());
+            stmt.executeUpdate();
         } catch (SQLException ex) {
             ex.printStackTrace();
             throw new RuntimeException(ex);
@@ -99,6 +134,45 @@ public class DriverRepository {
         }
     }
 
+
+    public void updateVehicleInfo(VehicleInfo vehicleInfo) {
+        Connection conn = null;
+        PreparedStatement stmt = null;
+
+        try {
+            conn = DriverManager.getConnection(props.getProperty("url"), props.getProperty("user"), props.getProperty("password"));
+            stmt = conn.prepareStatement("UPDATE vehicle SET type = ?, body_number = ?, model = ?, number = ? WHERE id = ? AND owner_id = ?");
+            stmt.setString(1, vehicleInfo.getType());
+            stmt.setString(2, vehicleInfo.getBodyId());
+            stmt.setString(3, vehicleInfo.getModel());
+            stmt.setString(4, String.valueOf(9999 - new Random().nextInt(999)));
+            stmt.setInt(5, vehicleInfo.getId());
+            stmt.setInt(6, vehicleInfo.getOwner_id());
+
+            stmt.executeUpdate();
+        } catch (SQLException ex) {
+            ex.printStackTrace();
+            throw new RuntimeException(ex);
+        } finally {
+            try {
+                if (stmt != null) {
+                    stmt.close();
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+                throw new RuntimeException(e);
+            }
+            try {
+                if (conn != null) {
+                    conn.close();
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+                throw new RuntimeException(e);
+            }
+        }
+    }
+
     public void insertDamageInfo(int vehicleId, DamageInfo damageInfo) {
         Connection conn = null;
         PreparedStatement stmt = null;
@@ -121,6 +195,53 @@ public class DriverRepository {
             stmt.setBoolean(13, damageInfo.getDamage().getDamageZone()[10]);
             stmt.setBoolean(14, damageInfo.getDamage().getDamageZone()[11]);
             stmt.setBoolean(15, damageInfo.getDamage().getDamageZone()[12]);
+            stmt.executeUpdate();
+        } catch (SQLException ex) {
+            ex.printStackTrace();
+            throw new RuntimeException(ex);
+        } finally {
+            try {
+                if (stmt != null) {
+                    stmt.close();
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+                throw new RuntimeException(e);
+            }
+            try {
+                if (conn != null) {
+                    conn.close();
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+                throw new RuntimeException(e);
+            }
+        }
+    }
+
+    public void updateDamageInfo(int vehicleId, DamageInfo damageInfo) {
+        Connection conn = null;
+        PreparedStatement stmt = null;
+
+        try {
+            conn = DriverManager.getConnection(props.getProperty("url"), props.getProperty("user"), props.getProperty("password"));
+            stmt = conn.prepareStatement("UPDATE damage SET date = ?, zone1 = ?, zone2 = ?, zone3 = ?, zone4 = ?, zone5 = ?, zone6 = ?, zone7 = ?, zone8 = ?, zone9 = ?, zone10 = ?, zone11 = ?, zone12 = ?, zone13 = ? WHERE id = ? AND vehicle_id = ?");
+            stmt.setDate(1, new Date(System.currentTimeMillis()));
+            stmt.setBoolean(2, damageInfo.getDamage().getDamageZone()[0]);
+            stmt.setBoolean(3, damageInfo.getDamage().getDamageZone()[1]);
+            stmt.setBoolean(4, damageInfo.getDamage().getDamageZone()[2]);
+            stmt.setBoolean(5, damageInfo.getDamage().getDamageZone()[3]);
+            stmt.setBoolean(6, damageInfo.getDamage().getDamageZone()[4]);
+            stmt.setBoolean(7, damageInfo.getDamage().getDamageZone()[5]);
+            stmt.setBoolean(8, damageInfo.getDamage().getDamageZone()[6]);
+            stmt.setBoolean(9, damageInfo.getDamage().getDamageZone()[7]);
+            stmt.setBoolean(10, damageInfo.getDamage().getDamageZone()[8]);
+            stmt.setBoolean(11, damageInfo.getDamage().getDamageZone()[9]);
+            stmt.setBoolean(12, damageInfo.getDamage().getDamageZone()[10]);
+            stmt.setBoolean(13, damageInfo.getDamage().getDamageZone()[11]);
+            stmt.setBoolean(14, damageInfo.getDamage().getDamageZone()[12]);
+            stmt.setInt(15, damageInfo.getId());
+            stmt.setInt(16, vehicleId);
             stmt.executeUpdate();
         } catch (SQLException ex) {
             ex.printStackTrace();

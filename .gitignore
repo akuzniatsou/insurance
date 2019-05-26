@@ -8,3 +8,5 @@
 *.iws
 logfile
 *.tar.gz
+/dataSources/
+/.ideaDataSources/
