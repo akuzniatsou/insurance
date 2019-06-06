@@ -4,6 +4,9 @@ import com.dww.insurance.domain.DamageReport;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+import java.awt.event.WindowListener;
 
 public class MainApp extends JFrame implements IApplication {
     CardLayout cardLayout;
@@ -48,7 +51,7 @@ public class MainApp extends JFrame implements IApplication {
 
     @Override
     public void edit() {
-        setTitle("Edit");
+        setTitle("Create");
         cardLayout.show(cardPanel, "Edit");
         editFrame.initialize(new DamageReport());
     }
@@ -61,9 +64,16 @@ public class MainApp extends JFrame implements IApplication {
     }
 
     private void initialize() {
-        setDefaultCloseOperation(DISPOSE_ON_CLOSE);
+        setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
         setDefaultLookAndFeelDecorated(true);
         setLayout(new BorderLayout());
+
+        addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowClosing(WindowEvent e) {
+                exitAction();
+            }
+        });
 
         setTitle(name);
         setSize(800, 600);
@@ -74,4 +84,11 @@ public class MainApp extends JFrame implements IApplication {
 
     }
 
+    private void exitAction() {
+        int confirmDialog = JOptionPane.showConfirmDialog(
+                this, "Are you sure you want to quit?", "Please confirm", JOptionPane.YES_NO_OPTION);
+        if (confirmDialog == JOptionPane.YES_OPTION) {
+            System.exit(0);
+        }
+    }
 }
