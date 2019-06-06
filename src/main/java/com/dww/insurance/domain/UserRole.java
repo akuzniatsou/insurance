@@ -4,22 +4,25 @@ import java.util.Arrays;
 import java.util.Optional;
 
 public enum UserRole {
-    UNAUTHORIZED("0"),
-    ADMIN("1"),
-    USER("2");
+    UNAUTHORIZED(0),
+    ADMIN(1),
+    USER(2),
+    ALL(3);
 
-    private String i;
+    private int id;
 
-    UserRole(String i) {
-        this.i = i;
+    public int getId() {
+        return id;
     }
 
-    public static UserRole lookupById(String id) {
-        if (id == null) throw new NullPointerException("Id is null");
+    UserRole(int id) {
+        this.id = id;
+    }
+
+    public static UserRole lookupById(int id) {
         Optional<UserRole> role = Arrays.stream(values())
-                .filter(userRole -> userRole.i.equals(id))
+                .filter(userRole -> userRole.id == id)
                 .findAny();
         return role.orElseThrow(() -> new IllegalArgumentException("No enum constant with id " + id));
-
     }
 }

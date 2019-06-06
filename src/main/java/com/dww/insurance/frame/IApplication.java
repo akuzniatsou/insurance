@@ -6,4 +6,6 @@ public interface IApplication {
     void search();
     void edit();
     void edit(DamageReport report);
+    void adminPanel();
+    void login();
 }

@@ -6,7 +6,7 @@ CREATE TABLE IF NOT EXISTS public.user
 (
   login text NOT NULL,
   pass text NOT NULL,
-  user_role text NOT NULL,
+  user_role smallint NOT NULL,
   CONSTRAINT pk_login PRIMARY KEY (login)
 );
 

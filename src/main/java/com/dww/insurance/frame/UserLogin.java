@@ -18,7 +18,8 @@ public class UserLogin extends JPanel {
         initialize();
     }
 
-    private void initialize() {
+    public void initialize() {
+        removeAll();
         setLayout(new GridBagLayout());
 
         JPanel parent = new JPanel();
@@ -53,8 +54,7 @@ public class UserLogin extends JPanel {
                 app.search();
                 break;
             case ADMIN:
-                app.search();
-//                app.adminPage();
+                app.adminPanel();
                 break;
             case UNAUTHORIZED:
             default:

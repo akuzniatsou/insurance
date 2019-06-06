@@ -15,6 +15,7 @@ public class MainApp extends JFrame implements IApplication {
     UserLogin userLogin;
     SearchFrame searchFrame;
     EditFrame editFrame;
+    AdminPanelFrame adminPanelFrame;
 
 
     public MainApp(String uname) {
@@ -30,15 +31,14 @@ public class MainApp extends JFrame implements IApplication {
         userLogin = new UserLogin(this);
         searchFrame = new SearchFrame(this);
         editFrame = new EditFrame(this);
+        adminPanelFrame = new AdminPanelFrame(this);
 
         cardPanel.add(userLogin, "Login");
         cardPanel.add(searchFrame, "Search");
         cardPanel.add(editFrame, "Edit");
+        cardPanel.add(adminPanelFrame, "Admin");
 
-        add(cardPanel);
-        setTitle("Login");
-        cardLayout.show(cardPanel, "Login");
-
+        login();
     }
 
     @Override
@@ -47,7 +47,6 @@ public class MainApp extends JFrame implements IApplication {
         cardLayout.show(cardPanel, "Search");
         searchFrame.initialize();
     }
-
 
     @Override
     public void edit() {
@@ -61,6 +60,21 @@ public class MainApp extends JFrame implements IApplication {
         setTitle("Edit");
         cardLayout.show(cardPanel, "Edit");
         editFrame.initialize(report);
+    }
+
+    @Override
+    public void adminPanel() {
+        setTitle("Admin Panel");
+        cardLayout.show(cardPanel, "Admin");
+        adminPanelFrame.initialize();
+    }
+
+    @Override
+    public void login() {
+        add(cardPanel);
+        setTitle("Login");
+        cardLayout.show(cardPanel, "Login");
+        userLogin.initialize();
     }
 
     private void initialize() {

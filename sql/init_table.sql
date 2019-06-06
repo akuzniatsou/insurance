@@ -52,6 +52,6 @@ INSERT INTO public.damage (id, vehicle_id, date, zone1, zone2, zone3, zone4, zon
     (315, 215, '2019-07-01 19:19:21.630000', true, false, true, true, false, false, false, true, false, true, true, false, true);
 
 INSERT INTO public.user (login, pass, user_role) VALUES
-    ('user', 'EE11CBB19052E40B07AAC0CA060C23EE', '2'),
-    ('admin', '21232F297A57A5A743894A0E4A801FC3', '1'),
-    ('ivan', '2C42E5CF1CDBAFEA04ED267018EF1511', '2');
+    ('user', 'EE11CBB19052E40B07AAC0CA060C23EE', 2),
+    ('admin', '21232F297A57A5A743894A0E4A801FC3', 1),
+    ('ivan', '2C42E5CF1CDBAFEA04ED267018EF1511', 2);
