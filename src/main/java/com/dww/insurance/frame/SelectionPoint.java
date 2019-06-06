@@ -4,15 +4,6 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.geom.Ellipse2D;
 
-/**
- * //TODO: [before commit] class description.
- * <p/>
- * Copyright (C) 2019 copyright.com
- * <p/>
- * Date: 05/06/2019
- *
- * @author Andrei Kuzniatsou
- */
 public class SelectionPoint implements Icon {
 
     private Color color;

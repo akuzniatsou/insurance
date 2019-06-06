@@ -8,15 +8,6 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
-/**
- * //TODO: [before commit] class description.
- * <p/>
- * Copyright (C) 2019 copyright.com
- * <p/>
- * Date: 05/19/2019
- *
- * @author Andrei Kuzniatsou
- */
 public class SearchResultTableModel extends AbstractTableModel {
 
     private String[] colums = {"User ID", "Surname", "Name", "Body ID"};
