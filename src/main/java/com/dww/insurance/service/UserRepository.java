@@ -1,9 +1,6 @@
 package com.dww.insurance.service;
 
-import com.dww.insurance.domain.Credentials;
-import com.dww.insurance.domain.QueryParam;
-import com.dww.insurance.domain.SearchResult;
-import com.dww.insurance.domain.UserRole;
+import com.dww.insurance.domain.*;
 
 import javax.xml.bind.DatatypeConverter;
 import java.security.MessageDigest;
@@ -42,6 +39,7 @@ public class UserRepository {
             closeConnection(conn, stmt);
         }
     }
+
     public List<Credentials> findUsers() {
         Connection conn = null;
         PreparedStatement stmt = null;
@@ -104,6 +102,46 @@ public class UserRepository {
         }
     }
 
+    public void deleteUser(String login) {
+        Connection conn = null;
+        PreparedStatement stmt = null;
+        try {
+            conn = DriverManager.getConnection(props.getProperty("url"), props.getProperty("user"), props.getProperty("password"));
+            stmt = conn.prepareStatement("DELETE FROM public.user WHERE login = ?");
+            stmt.setString(1, login);
+            stmt.executeUpdate();
+        } catch (SQLException ex) {
+            ex.printStackTrace();
+            throw new RuntimeException(ex);
+        } finally {
+            closeConnection(conn, stmt);
+        }
+    }
+
+    public void insertUser(Credentials credentials) {
+        Connection conn = null;
+        PreparedStatement stmt = null;
+
+        try {
+            conn = DriverManager.getConnection(props.getProperty("url"), props.getProperty("user"), props.getProperty("password"));
+
+            MessageDigest md = MessageDigest.getInstance("MD5");
+            md.update(credentials.getPassword().getBytes());
+            byte[] digest = md.digest();
+            String hash = DatatypeConverter.printHexBinary(digest).toUpperCase();
+
+            stmt = conn.prepareStatement("INSERT INTO public.user (login, pass, user_role) VALUES (?,?,?)");
+            stmt.setString(1, credentials.getLogin());
+            stmt.setString(2, hash);
+            stmt.setInt(3, credentials.getRole().getId());
+            stmt.executeUpdate();
+        } catch (SQLException | NoSuchAlgorithmException ex) {
+            ex.printStackTrace();
+            throw new RuntimeException(ex);
+        } finally {
+            closeConnection(conn, stmt);
+        }
+    }
 
     private void closeConnection(Connection conn, PreparedStatement stmt) {
         try {

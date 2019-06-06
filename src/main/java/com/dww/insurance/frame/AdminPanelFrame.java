@@ -1,52 +1,36 @@
 package com.dww.insurance.frame;
 
-import com.dww.insurance.domain.*;
-import com.dww.insurance.model.SearchResultTableModel;
+import com.dww.insurance.domain.Credentials;
+import com.dww.insurance.domain.UserRole;
 import com.dww.insurance.model.UserTableModel;
-import com.dww.insurance.service.DriverRepository;
-import com.dww.insurance.service.SearchRepository;
 import com.dww.insurance.service.UserRepository;
 
-import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.awt.image.BufferedImage;
-import java.io.IOException;
+import java.net.URI;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class AdminPanelFrame extends JPanel {
 
-    private static final int BASE_LINE = 180;
-    private static final int BASE_WIDTH = 240;
-    private static final int BASE_HEIGHT = 20;
-
     private final UserRepository userRepository;
 
-    private JTextField surnameTextField;
+    private JTextField searchLoginTextField = new JTextField(22);
+    private JTextField newLoginTextField = new JTextField(22);
+    private JPasswordField newPassTextField = new JPasswordField(22);
+    private JButton deleteButton;
+    private JComboBox<UserRole> newRole;
+
     private JComboBox<UserRole> userRoleComboBox;
-    private JTextField bodyTextField;
     private DefaultListModel<Credentials> listModel = new DefaultListModel<>();
     private IApplication app;
 
-    private JLabel driverSurname;
-    private JLabel driverName;
-    private JLabel driverPassId;
-    private JLabel driverAddress;
-    private JLabel driverPhone;
-    private JLabel vehicleModel;
-    private JLabel vehicleType;
-    private JLabel vehicleNumber;
-    private JLabel vehicleBodyId;
-
-    private DamageReport report;
     private JPanel bottomPanel;
-    private JLabel wIcon;
-
+    private Credentials credentials = new Credentials();
     private JTable table;
-
 
     public AdminPanelFrame(IApplication app) {
         this.app = app;
@@ -61,21 +45,7 @@ public class AdminPanelFrame extends JPanel {
         initSearchTab();
         initBottomPanel();
         setVisible(true);
-    }
-
-    private void initBottomPanel() {
-        bottomPanel = new JPanel(new FlowLayout());
-        bottomPanel.setBounds(90, 520, 200, 40);
-        bottomPanel.setVisible(false);
-
-        JButton editBtn = new JButton("Edit");
-        editBtn.addActionListener(event -> {
-            AdminPanelFrame.this.updateUI();
-            app.edit(report);
-        });
-
-        bottomPanel.add(editBtn);
-        add(bottomPanel);
+        addUserTab();
     }
 
     private void initSearchResult() {
@@ -87,6 +57,14 @@ public class AdminPanelFrame extends JPanel {
         UserTableModel tableModel = new UserTableModel(tableData);
         table = new JTable(tableModel);
         table.setAutoCreateRowSorter(true);
+        table.requestFocus();
+        table.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                credentials = ((UserTableModel) table.getModel()).getValue(table.convertRowIndexToModel(table.getSelectedRow()));
+                deleteButton.setVisible(true);
+            }
+        });
         JScrollPane scrollPaneTable = new JScrollPane(table);
         scrollPaneTable.setBounds(20, 60, 750, 200);
         add(scrollPaneTable);
@@ -98,8 +76,8 @@ public class AdminPanelFrame extends JPanel {
 
         searchPanel.add(new JLabel("Login"));
 
-        surnameTextField = new JTextField(10);
-        searchPanel.add(surnameTextField);
+        searchLoginTextField = new JTextField(10);
+        searchPanel.add(searchLoginTextField);
 
         searchPanel.add(new JLabel("Role"));
 
@@ -115,12 +93,14 @@ public class AdminPanelFrame extends JPanel {
 
         JButton clearButton = new JButton("Clear");
         clearButton.addActionListener(e -> {
-            surnameTextField.setText("");
+            searchLoginTextField.setText("");
             userRoleComboBox.setSelectedItem(UserRole.ALL);
+            table.getSelectionModel().clearSelection();
+            deleteButton.setVisible(false);
         });
         searchPanel.add(clearButton);
 
-        JButton btnLogout = new JButton("Exit");
+        JButton btnLogout = new JButton("Logout");
         btnLogout.addActionListener(e -> {
             AdminPanelFrame.this.updateUI();
             app.login();
@@ -131,19 +111,114 @@ public class AdminPanelFrame extends JPanel {
         add(searchPanel);
     }
 
+    private void initBottomPanel() {
+        bottomPanel = new JPanel(new FlowLayout());
+        bottomPanel.setBounds(90, 520, 200, 40);
+        bottomPanel.setVisible(true);
+
+        JButton addBtn = new JButton("Save");
+        addBtn.addActionListener(event -> {
+            AdminPanelFrame.this.updateUI();
+            save();
+        });
+        deleteButton = new JButton("Delete");
+        deleteButton.setBackground(new Color(250, 128, 114));
+        deleteButton.addActionListener(event -> delete());
+        deleteButton.setVisible(false);
+
+        bottomPanel.add(addBtn);
+        bottomPanel.add(deleteButton);
+        add(bottomPanel);
+    }
+
+    private void addUserTab() {
+        JPanel addUserTab = new JPanel();
+        addUserTab.setBounds(20, 280, 350, 100);
+        addUserTab.setLayout(new BoxLayout(addUserTab, BoxLayout.Y_AXIS));
+
+        JPanel title = new JPanel(new BorderLayout());
+        title.add(new JLabel("Add User"), BorderLayout.WEST);
+
+        JPanel role = new JPanel(new BorderLayout());
+        newRole = new JComboBox<>();
+        newRole.addItem(UserRole.ADMIN);
+        newRole.addItem(UserRole.USER);
+        newRole.addItem(UserRole.UNAUTHORIZED);
+        newRole.setSelectedItem(UserRole.UNAUTHORIZED);
+        role.add(newRole);
+
+        addUserTab.add(title);
+        addUserTab.add(new JSeparator());
+        addUserTab.add(Box.createVerticalStrut(5));
+        addUserTab.add("Login", createComponent("Login", newLoginTextField));
+        addUserTab.add("Pass", createComponent("Pass", newPassTextField));
+        addUserTab.add("Role", createComponent("Role", role));
+
+        addUserTab.setVisible(true);
+        add(addUserTab);
+    }
+
+    private void save() {
+        if (empty(newLoginTextField, newLoginTextField) && newRole.getSelectedItem() == UserRole.UNAUTHORIZED) {
+            JOptionPane.showMessageDialog(this, "Please fill all fields", "Error", JOptionPane.ERROR_MESSAGE);
+        } else {
+            Credentials credentials = new Credentials();
+            credentials.setRole((UserRole) newRole.getSelectedItem());
+            credentials.setLogin(newLoginTextField.getText());
+            credentials.setPassword(String.valueOf(newPassTextField.getPassword()));
+            userRepository.insertUser(credentials);
+            clearNewUser();
+        }
+    }
+
+    private void clearNewUser() {
+        newLoginTextField.setText("");
+        newPassTextField.setText("");
+        newRole.setSelectedItem(UserRole.UNAUTHORIZED);
+    }
+
+    private void delete() {
+        if (credentials != null && credentials.getLogin() != null) {
+            int confirmDialog = JOptionPane.showConfirmDialog(
+                    this, "Are you sure to delete it?", "Please confirm", JOptionPane.YES_NO_OPTION);
+            if (confirmDialog == JOptionPane.YES_OPTION) {
+                userRepository.deleteUser(credentials.getLogin());
+                bottomPanel.setVisible(false);
+                initialize();
+                search();
+            }
+        }
+    }
+
     private void search() {
-        if (surnameTextField.getText().isEmpty()
+        deleteButton.setVisible(false);
+        List<Credentials> searchResults;
+        if (searchLoginTextField.getText().isEmpty()
                 && UserRole.valueOf(userRoleComboBox.getSelectedItem().toString()) == UserRole.ALL) {
-            List<Credentials> searchResults = userRepository.findUsers();
+            searchResults = userRepository.findUsers();
             searchResults.forEach(person -> listModel.addElement(person));
             table.setModel(new UserTableModel(searchResults));
         } else {
-            Credentials credentials = new Credentials(surnameTextField.getText(), null);
+            Credentials credentials = new Credentials(searchLoginTextField.getText(), null);
             credentials.setRole(UserRole.valueOf(userRoleComboBox.getSelectedItem().toString()));
-            List<Credentials> searchResults = userRepository.find(credentials);
+            searchResults = userRepository.find(credentials);
             searchResults.forEach(person -> listModel.addElement(person));
             table.setModel(new UserTableModel(searchResults));
         }
+        if (!searchResults.isEmpty()) {
+            bottomPanel.setVisible(true);
+        }
+    }
+
+    private JPanel createComponent(String label, Component textField) {
+        JPanel panel = new JPanel(new BorderLayout());
+        panel.add(new JLabel(label), BorderLayout.WEST);
+        panel.add(textField, BorderLayout.EAST);
+        return panel;
+    }
+
+    private boolean empty(JTextField... textFields) {
+        return Arrays.stream(textFields).map(JTextField::getText).anyMatch(String::isEmpty);
     }
 
 }

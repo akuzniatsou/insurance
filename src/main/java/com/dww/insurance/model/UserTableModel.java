@@ -43,6 +43,10 @@ public class UserTableModel extends AbstractTableModel {
         return temp;
     }
 
+    public Credentials getValue(int rowIndex) {
+        return list.get(rowIndex);
+    }
+
     @Override
     public String getColumnName(int col) {
         return columns[col];

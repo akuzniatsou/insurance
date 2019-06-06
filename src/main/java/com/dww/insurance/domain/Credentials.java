@@ -7,8 +7,19 @@ public class Credentials {
     private String password;
     private UserRole role = UserRole.UNAUTHORIZED;
 
+    public Credentials() {
+    }
+
     public Credentials(String login, String password) {
         this.login = login;
+        this.password = password;
+    }
+
+    public void setLogin(String login) {
+        this.login = login;
+    }
+
+    public void setPassword(String password) {
         this.password = password;
     }
 

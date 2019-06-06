@@ -202,21 +202,21 @@ public class SearchFrame extends JPanel {
 
     private void initSearchTab() {
         JPanel searchPanel = new JPanel(new FlowLayout());
-        searchPanel.setBounds(20, 5, 750, 40);
+        searchPanel.setBounds(10, 5, 780, 40);
 
         searchPanel.add(new JLabel("Surname"));
 
-        surnameTextField = new JTextField(10);
+        surnameTextField = new JTextField(9);
         searchPanel.add(surnameTextField);
 
         searchPanel.add(new JLabel("Owner ID"));
 
-        ownerTextField = new JTextField(10);
+        ownerTextField = new JTextField(9);
         searchPanel.add(ownerTextField);
 
         searchPanel.add(new JLabel("Body ID"));
 
-        bodyTextField = new JTextField(10);
+        bodyTextField = new JTextField(9);
         searchPanel.add(bodyTextField);
 
         JButton btnSearch = new JButton("Search");
@@ -237,6 +237,13 @@ public class SearchFrame extends JPanel {
             bodyTextField.setText("");
         });
         searchPanel.add(clearButton);
+
+        JButton btnLogout = new JButton("Logout");
+        btnLogout.addActionListener(e -> {
+            SearchFrame.this.updateUI();
+            app.login();
+        });
+        searchPanel.add(btnLogout);
 
         add(searchPanel);
     }
