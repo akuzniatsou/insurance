@@ -1,23 +1,30 @@
 package com.dww.insurance.domain;
 
-import java.util.Arrays;
 import java.util.Objects;
 
 public class Credentials {
-    private String user;
-    private char[] password;
+    private String login;
+    private String password;
+    private UserRole role = UserRole.UNAUTHORIZED;
 
-    public String getUser() {
-        return user;
+    public Credentials(String login, String password) {
+        this.login = login;
+        this.password = password;
     }
 
-    public char[] getPassword() {
+    public String getLogin() {
+        return login;
+    }
+    public String getPassword() {
         return password;
     }
 
-    public Credentials(String user, char[] password) {
-        this.user = user;
-        this.password = password;
+    public UserRole getRole() {
+        return role;
+    }
+
+    public void setRole(UserRole role) {
+        this.role = role;
     }
 
     @Override
@@ -25,14 +32,13 @@ public class Credentials {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         Credentials that = (Credentials) o;
-        return Objects.equals(user, that.user) &&
-            Arrays.equals(password, that.password);
+        return Objects.equals(login, that.login) &&
+                Objects.equals(password, that.password) &&
+                role == that.role;
     }
 
     @Override
     public int hashCode() {
-        int result = Objects.hash(user);
-        result = 31 * result + Arrays.hashCode(password);
-        return result;
+        return Objects.hash(login, password, role);
     }
 }

@@ -3,14 +3,11 @@ package com.dww.insurance.model;
 import com.dww.insurance.domain.SearchResult;
 
 import javax.swing.table.AbstractTableModel;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
 
 public class SearchResultTableModel extends AbstractTableModel {
 
-    private String[] colums = {"User ID", "Surname", "Name", "Body ID"};
+    private String[] columns = {"User ID", "Surname", "Name", "Body ID"};
     private List<SearchResult> list;
 
     public SearchResultTableModel(List<SearchResult> list) {
@@ -30,7 +27,7 @@ public class SearchResultTableModel extends AbstractTableModel {
 
     @Override
     public int getColumnCount() {
-        return colums.length;
+        return columns.length;
     }
 
     @Override
@@ -50,6 +47,6 @@ public class SearchResultTableModel extends AbstractTableModel {
 
     @Override
     public String getColumnName(int col) {
-        return colums[col];
+        return columns[col];
     }
 }

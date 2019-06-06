@@ -2,6 +2,13 @@ CREATE SEQUENCE IF NOT EXISTS public.owner_seq START 130;
 CREATE SEQUENCE IF NOT EXISTS public.vehicle_seq START 230;
 CREATE SEQUENCE IF NOT EXISTS public.damage_seq START 330;
 
+CREATE TABLE IF NOT EXISTS public.user
+(
+  login text NOT NULL,
+  pass text NOT NULL,
+  user_role text NOT NULL,
+  CONSTRAINT pk_login PRIMARY KEY (login)
+);
 
 CREATE TABLE IF NOT EXISTS public.owner
 (

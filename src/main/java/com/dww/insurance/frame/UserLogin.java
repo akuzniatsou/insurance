@@ -47,11 +47,18 @@ public class UserLogin extends JPanel {
     }
 
     private void validateAction(JTextField textField, JPasswordField passwordField) {
-        boolean valid = userRepository.validUser(new Credentials(textField.getText(), passwordField.getPassword()));
-        if (valid) {
-            app.search();
-        } else {
-            JOptionPane.showMessageDialog(this, "Incorrect login or password", "Error", JOptionPane.ERROR_MESSAGE);
+        Credentials credentials = userRepository.authorize(new Credentials(textField.getText(), String.valueOf(passwordField.getPassword())));
+        switch (credentials.getRole()) {
+            case USER:
+                app.search();
+                break;
+            case ADMIN:
+                app.search();
+//                app.adminPage();
+                break;
+            case UNAUTHORIZED:
+            default:
+                JOptionPane.showMessageDialog(this, "Incorrect login or password", "Error", JOptionPane.ERROR_MESSAGE);
         }
     }
 

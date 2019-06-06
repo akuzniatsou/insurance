@@ -37,7 +37,7 @@ public class MainApp extends JFrame implements IApplication {
 
         add(cardPanel);
         setTitle("Login");
-        cardLayout.show(cardPanel, "Search");
+        cardLayout.show(cardPanel, "Login");
 
     }
 

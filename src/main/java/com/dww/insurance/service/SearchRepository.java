@@ -64,25 +64,6 @@ public class SearchRepository {
         }
     }
 
-    private void closeConnection(Connection conn, PreparedStatement stmt) {
-        try {
-            if (stmt != null) {
-                stmt.close();
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-            throw new RuntimeException(e);
-        }
-        try {
-            if (conn != null) {
-                conn.close();
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-            throw new RuntimeException(e);
-        }
-    }
-
     public List<SearchResult> searchAll() {
         Connection conn = null;
         PreparedStatement stmt = null;
@@ -170,6 +151,25 @@ public class SearchRepository {
             throw new RuntimeException(ex);
         } finally {
             closeConnection(conn, stmt);
+        }
+    }
+
+    private void closeConnection(Connection conn, PreparedStatement stmt) {
+        try {
+            if (stmt != null) {
+                stmt.close();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new RuntimeException(e);
+        }
+        try {
+            if (conn != null) {
+                conn.close();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new RuntimeException(e);
         }
     }
 
