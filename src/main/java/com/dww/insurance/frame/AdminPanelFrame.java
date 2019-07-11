@@ -74,12 +74,12 @@ public class AdminPanelFrame extends JPanel {
         JPanel searchPanel = new JPanel(new FlowLayout());
         searchPanel.setBounds(20, 5, 750, 40);
 
-        searchPanel.add(new JLabel("Login"));
+        searchPanel.add(new JLabel("Логин"));
 
         searchLoginTextField = new JTextField(10);
         searchPanel.add(searchLoginTextField);
 
-        searchPanel.add(new JLabel("Role"));
+        searchPanel.add(new JLabel("Роль"));
 
         JPanel type = new JPanel(new BorderLayout());
         userRoleComboBox = new JComboBox<>(UserRole.values());
@@ -87,11 +87,11 @@ public class AdminPanelFrame extends JPanel {
         type.add(userRoleComboBox);
         searchPanel.add(type);
 
-        JButton btnSearch = new JButton("Search");
+        JButton btnSearch = new JButton("Поиск");
         btnSearch.addActionListener(event -> search());
         searchPanel.add(btnSearch);
 
-        JButton clearButton = new JButton("Clear");
+        JButton clearButton = new JButton("Очистить");
         clearButton.addActionListener(e -> {
             searchLoginTextField.setText("");
             userRoleComboBox.setSelectedItem(UserRole.ALL);
@@ -100,7 +100,7 @@ public class AdminPanelFrame extends JPanel {
         });
         searchPanel.add(clearButton);
 
-        JButton btnLogout = new JButton("Logout");
+        JButton btnLogout = new JButton("Выйти");
         btnLogout.addActionListener(e -> {
             AdminPanelFrame.this.updateUI();
             app.login();
@@ -116,12 +116,12 @@ public class AdminPanelFrame extends JPanel {
         bottomPanel.setBounds(90, 520, 200, 40);
         bottomPanel.setVisible(true);
 
-        JButton addBtn = new JButton("Save");
+        JButton addBtn = new JButton("Сохранить");
         addBtn.addActionListener(event -> {
             AdminPanelFrame.this.updateUI();
             save();
         });
-        deleteButton = new JButton("Delete");
+        deleteButton = new JButton("Удалить");
         deleteButton.setBackground(new Color(250, 128, 114));
         deleteButton.addActionListener(event -> delete());
         deleteButton.setVisible(false);
@@ -137,7 +137,7 @@ public class AdminPanelFrame extends JPanel {
         addUserTab.setLayout(new BoxLayout(addUserTab, BoxLayout.Y_AXIS));
 
         JPanel title = new JPanel(new BorderLayout());
-        title.add(new JLabel("Add User"), BorderLayout.WEST);
+        title.add(new JLabel("Добавить пользователя"), BorderLayout.WEST);
 
         JPanel role = new JPanel(new BorderLayout());
         newRole = new JComboBox<>();
@@ -150,9 +150,9 @@ public class AdminPanelFrame extends JPanel {
         addUserTab.add(title);
         addUserTab.add(new JSeparator());
         addUserTab.add(Box.createVerticalStrut(5));
-        addUserTab.add("Login", createComponent("Login", newLoginTextField));
-        addUserTab.add("Pass", createComponent("Pass", newPassTextField));
-        addUserTab.add("Role", createComponent("Role", role));
+        addUserTab.add("Login", createComponent("Логин", newLoginTextField));
+        addUserTab.add("Pass", createComponent("Пароль", newPassTextField));
+        addUserTab.add("Role", createComponent("Роль", role));
 
         addUserTab.setVisible(true);
         add(addUserTab);
@@ -160,7 +160,7 @@ public class AdminPanelFrame extends JPanel {
 
     private void save() {
         if (empty(newLoginTextField, newLoginTextField) && newRole.getSelectedItem() == UserRole.UNAUTHORIZED) {
-            JOptionPane.showMessageDialog(this, "Please fill all fields", "Error", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Пожалуйста заполните все поля", "Ошибка", JOptionPane.ERROR_MESSAGE);
         } else {
             Credentials credentials = new Credentials();
             credentials.setRole((UserRole) newRole.getSelectedItem());
@@ -180,7 +180,7 @@ public class AdminPanelFrame extends JPanel {
     private void delete() {
         if (credentials != null && credentials.getLogin() != null) {
             int confirmDialog = JOptionPane.showConfirmDialog(
-                    this, "Are you sure to delete it?", "Please confirm", JOptionPane.YES_NO_OPTION);
+                    this, "Вы действительно хотите удалить это?", "Подтвердите", JOptionPane.YES_NO_OPTION);
             if (confirmDialog == JOptionPane.YES_OPTION) {
                 userRepository.deleteUser(credentials.getLogin());
                 bottomPanel.setVisible(false);

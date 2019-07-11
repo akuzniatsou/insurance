@@ -81,15 +81,15 @@ public class EditFrame extends JPanel {
         driverInfoPanel.setLayout(new BoxLayout(driverInfoPanel, BoxLayout.Y_AXIS));
 
         JPanel title = new JPanel(new BorderLayout());
-        title.add(new JLabel("Driver Info"), BorderLayout.WEST);
+        title.add(new JLabel("О водителе"), BorderLayout.WEST);
 
         driverInfoPanel.add(title);
         driverInfoPanel.add(new JSeparator());
-        driverInfoPanel.add("Surname", createComponent("Surname", report.getDriverInfo().getLastName(), lastNameTextField));
-        driverInfoPanel.add("Name", createComponent("Name", report.getDriverInfo().getName(), nameTextField));
-        driverInfoPanel.add(createComponent("Address", report.getDriverInfo().getAddress(), addressTextField));
-        driverInfoPanel.add(createComponent("Phone", report.getDriverInfo().getPhone(), phoneTextField));
-        driverInfoPanel.add(createComponent("Pass ID", report.getDriverInfo().getPassId(), passIdTextField));
+        driverInfoPanel.add("Surname", createComponent("Фамилия", report.getDriverInfo().getLastName(), lastNameTextField));
+        driverInfoPanel.add("Name", createComponent("Имя", report.getDriverInfo().getName(), nameTextField));
+        driverInfoPanel.add(createComponent("Адрес", report.getDriverInfo().getAddress(), addressTextField));
+        driverInfoPanel.add(createComponent("Телефон", report.getDriverInfo().getPhone(), phoneTextField));
+        driverInfoPanel.add(createComponent("ID Паспорта", report.getDriverInfo().getPassId(), passIdTextField));
         driverInfoPanel.setVisible(true);
         add(driverInfoPanel);
     }
@@ -100,7 +100,7 @@ public class EditFrame extends JPanel {
         panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
 
         JPanel title = new JPanel(new BorderLayout());
-        title.add(new JLabel("Vehicle Info"), BorderLayout.WEST);
+        title.add(new JLabel("О т/с"), BorderLayout.WEST);
 
         JPanel type = new JPanel(new BorderLayout());
         vehicleTypeComboBox = new JComboBox<>(VehicleType.values());
@@ -109,10 +109,10 @@ public class EditFrame extends JPanel {
 
         panel.add(title);
         panel.add(new JSeparator());
-        panel.add(createComponent("Model", report.getVehicleInfo().getModel(), vehicleModelTextField));
+        panel.add(createComponent("Модель", report.getVehicleInfo().getModel(), vehicleModelTextField));
         panel.add(type);
-        panel.add(createComponent("Number", report.getVehicleInfo().getNumber(), vehicleNumberTextField));
-        panel.add(createComponent("Body ID", report.getVehicleInfo().getBodyId(), vehicleBodyIdTextField));
+        panel.add(createComponent("Номер", report.getVehicleInfo().getNumber(), vehicleNumberTextField));
+        panel.add(createComponent("ID Кузова", report.getVehicleInfo().getBodyId(), vehicleBodyIdTextField));
 
         panel.setVisible(true);
         add(panel);
@@ -127,7 +127,7 @@ public class EditFrame extends JPanel {
     }
 
     private void initDamageInfoTab() {
-        JLabel lblDamage = new JLabel("Damage Info:");
+        JLabel lblDamage = new JLabel("Повреждения:");
         lblDamage.setBounds(20, BASE_LINE, 100, BASE_HEIGHT);
         add(lblDamage);
 
@@ -206,18 +206,18 @@ public class EditFrame extends JPanel {
 
     private void initBottomPanel() {
         JPanel bottomPanel = new JPanel(new FlowLayout());
-        bottomPanel.setBounds(450, 520, 400, 40);
+        bottomPanel.setBounds(455, 520, 400, 40);
 
-        JButton saveButton = new JButton("Save");
+        JButton saveButton = new JButton("Сохранить");
         saveButton.addActionListener(saveDamageReport());
 
-        JButton cancelButton = new JButton("Cancel");
+        JButton cancelButton = new JButton("Отмена");
         cancelButton.addActionListener(e -> {
             EditFrame.this.updateUI();
             app.search();
         });
 
-        JButton clearButton = new JButton("Clear");
+        JButton clearButton = new JButton("Очистить");
         clearButton.addActionListener(e -> {
             EditFrame.this.updateUI();
             app.edit();
@@ -233,7 +233,7 @@ public class EditFrame extends JPanel {
         DriverInfo driverInfo = new DriverInfo();
         if (empty(nameTextField, lastNameTextField, addressTextField, phoneTextField, passIdTextField,
             vehicleBodyIdTextField, vehicleNumberTextField, vehicleModelTextField)) {
-            JOptionPane.showMessageDialog(this, "Please fill all fields", "Error", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Заполните все поля", "Ошибка", JOptionPane.ERROR_MESSAGE);
             return null;
         }
         driverInfo.setId(report == null ? 0 : report.getDriverInfo().getId());

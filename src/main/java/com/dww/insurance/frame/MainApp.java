@@ -43,28 +43,28 @@ public class MainApp extends JFrame implements IApplication {
 
     @Override
     public void search() {
-        setTitle("Search");
+        setTitle("Поиск");
         cardLayout.show(cardPanel, "Search");
         searchFrame.initialize();
     }
 
     @Override
     public void edit() {
-        setTitle("Create");
+        setTitle("Создание");
         cardLayout.show(cardPanel, "Edit");
         editFrame.initialize(new DamageReport());
     }
 
     @Override
     public void edit(DamageReport report) {
-        setTitle("Edit");
+        setTitle("Изменение");
         cardLayout.show(cardPanel, "Edit");
         editFrame.initialize(report);
     }
 
     @Override
     public void adminPanel() {
-        setTitle("Admin Panel");
+        setTitle("Панель Администратора");
         cardLayout.show(cardPanel, "Admin");
         adminPanelFrame.initialize();
     }
@@ -72,7 +72,7 @@ public class MainApp extends JFrame implements IApplication {
     @Override
     public void login() {
         add(cardPanel);
-        setTitle("Login");
+        setTitle("Вход в систему");
         cardLayout.show(cardPanel, "Login");
         userLogin.initialize();
     }
@@ -100,7 +100,7 @@ public class MainApp extends JFrame implements IApplication {
 
     private void exitAction() {
         int confirmDialog = JOptionPane.showConfirmDialog(
-                this, "Are you sure you want to quit?", "Please confirm", JOptionPane.YES_NO_OPTION);
+                this, "Вы действительно хотите выйти?", "Подвердите", JOptionPane.YES_NO_OPTION);
         if (confirmDialog == JOptionPane.YES_OPTION) {
             System.exit(0);
         }

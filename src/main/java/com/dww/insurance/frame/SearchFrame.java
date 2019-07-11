@@ -72,15 +72,15 @@ public class SearchFrame extends JPanel {
 
     private void initBottomPanel() {
         bottomPanel = new JPanel(new FlowLayout());
-        bottomPanel.setBounds(90, 520, 200, 40);
+        bottomPanel.setBounds(75, 515, 200, 40);
         bottomPanel.setVisible(false);
 
-        JButton editBtn = new JButton("Edit");
+        JButton editBtn = new JButton("Изменить");
         editBtn.addActionListener(event -> {
             SearchFrame.this.updateUI();
             app.edit(report);
         });
-        JButton deleteButton = new JButton("Delete");
+        JButton deleteButton = new JButton("Удалить");
         deleteButton.setBackground(new Color(250, 128, 114));
         deleteButton.addActionListener(event -> delete());
 
@@ -90,7 +90,7 @@ public class SearchFrame extends JPanel {
     }
 
     private void initDamageInfoTab() {
-        JLabel lblDamage = new JLabel("Damage Info:");
+        JLabel lblDamage = new JLabel("Повреждения:");
         lblDamage.setBounds(260, BASE_LINE, 100, BASE_HEIGHT);
         add(lblDamage);
 
@@ -149,7 +149,7 @@ public class SearchFrame extends JPanel {
     }
 
     private void initDriverInfoTab() {
-        JLabel driverInfoLabel = new JLabel("Driver Info:");
+        JLabel driverInfoLabel = new JLabel("О водителе :");
         driverInfoLabel.setBounds(20, BASE_LINE, 240, BASE_HEIGHT);
         add(driverInfoLabel);
 
@@ -179,7 +179,7 @@ public class SearchFrame extends JPanel {
     }
 
     private void initVehicleTab() {
-        JLabel lblVehicleInfo = new JLabel("Vehicle Info:");
+        JLabel lblVehicleInfo = new JLabel("О т/с:");
         lblVehicleInfo.setBounds(20, 340, BASE_WIDTH, 20);
         add(lblVehicleInfo);
 
@@ -202,35 +202,35 @@ public class SearchFrame extends JPanel {
 
     private void initSearchTab() {
         JPanel searchPanel = new JPanel(new FlowLayout());
-        searchPanel.setBounds(10, 5, 780, 40);
+        searchPanel.setBounds(2, 5, 780, 40);
 
-        searchPanel.add(new JLabel("Surname"));
+        searchPanel.add(new JLabel("Фамилия"));
 
-        surnameTextField = new JTextField(9);
+        surnameTextField = new JTextField(7);
         searchPanel.add(surnameTextField);
 
-        searchPanel.add(new JLabel("Owner ID"));
+        searchPanel.add(new JLabel("Инд.№"));
 
-        ownerTextField = new JTextField(9);
+        ownerTextField = new JTextField(7);
         searchPanel.add(ownerTextField);
 
-        searchPanel.add(new JLabel("Body ID"));
+        searchPanel.add(new JLabel("№ Кузова"));
 
-        bodyTextField = new JTextField(9);
+        bodyTextField = new JTextField(7);
         searchPanel.add(bodyTextField);
 
-        JButton btnSearch = new JButton("Search");
+        JButton btnSearch = new JButton("Поиск");
         btnSearch.addActionListener(event -> search());
         searchPanel.add(btnSearch);
 
-        JButton btnAdd = new JButton("Add");
+        JButton btnAdd = new JButton("Добавить");
         btnAdd.addActionListener(e -> {
             SearchFrame.this.updateUI();
             app.edit();
         });
         searchPanel.add(btnAdd);
 
-        JButton clearButton = new JButton("Clear");
+        JButton clearButton = new JButton("Очистить");
         clearButton.addActionListener(e -> {
             surnameTextField.setText("");
             ownerTextField.setText("");
@@ -238,7 +238,7 @@ public class SearchFrame extends JPanel {
         });
         searchPanel.add(clearButton);
 
-        JButton btnLogout = new JButton("Logout");
+        JButton btnLogout = new JButton("Выйти");
         btnLogout.addActionListener(e -> {
             SearchFrame.this.updateUI();
             app.login();
@@ -266,7 +266,7 @@ public class SearchFrame extends JPanel {
     private void delete() {
         if (report != null) {
             int confirmDialog = JOptionPane.showConfirmDialog(
-                this, "Are you sure to delete it?", "Please confirm", JOptionPane.YES_NO_OPTION);
+                this, "Действительно удалить?", "Подтверждение", JOptionPane.YES_NO_OPTION);
             if (confirmDialog == JOptionPane.YES_OPTION) {
                 driverRepository.deleteDamageInfo(report.getDamageInfo().getId());
                 driverRepository.deleteVehicleInfo(report.getVehicleInfo().getId());
@@ -284,16 +284,16 @@ public class SearchFrame extends JPanel {
     }
 
     private void populateDamageReport(DamageReport report) {
-        driverPassId.setText("<html>Pass ID : " + (report == null ? "" : "<br>" + report.getDriverInfo().getPassId())+"</html>");
-        driverSurname.setText("Last Name : " + (report == null ? "" : "\n" + report.getDriverInfo().getLastName()));
-        driverName.setText("Name : " + (report == null ? "" : report.getDriverInfo().getName()));
-        driverAddress.setText("Address : " + (report == null ? "" : "\n" + report.getDriverInfo().getAddress()));
-        driverPhone.setText("Phone : " + (report == null ? "" : "\n" + report.getDriverInfo().getPhone()));
+        driverPassId.setText("<html>Номер паспорта : " + (report == null ? "" : "<br>" + report.getDriverInfo().getPassId())+"</html>");
+        driverSurname.setText("Фамилия : " + (report == null ? "" : "\n" + report.getDriverInfo().getLastName()));
+        driverName.setText("Имя : " + (report == null ? "" : report.getDriverInfo().getName()));
+        driverAddress.setText("Адрес : " + (report == null ? "" : "\n" + report.getDriverInfo().getAddress()));
+        driverPhone.setText("Телефон : " + (report == null ? "" : "\n" + report.getDriverInfo().getPhone()));
 
-        vehicleModel.setText("Model : " + (report == null ? "" : "\n" + report.getVehicleInfo().getModel()));
-        vehicleType.setText("Type : " + (report == null ? "" : "\n" + report.getVehicleInfo().getType()));
-        vehicleNumber.setText("Number : " + (report == null ? "" : "\n" + report.getVehicleInfo().getNumber()));
-        vehicleBodyId.setText("<html>Body ID : " + (report == null ? "" : "<br>" + report.getVehicleInfo().getBodyId())+"</html>");
+        vehicleModel.setText("Модель : " + (report == null ? "" : "\n" + report.getVehicleInfo().getModel()));
+        vehicleType.setText("Тип : " + (report == null ? "" : "\n" + report.getVehicleInfo().getType()));
+        vehicleNumber.setText("Номер : " + (report == null ? "" : "\n" + report.getVehicleInfo().getNumber()));
+        vehicleBodyId.setText("<html>Номер кузова : " + (report == null ? "" : "<br>" + report.getVehicleInfo().getBodyId())+"</html>");
         damageZone(report == null ? null : report.getDamageInfo());
         if (report != null) {
             bottomPanel.setVisible(true);

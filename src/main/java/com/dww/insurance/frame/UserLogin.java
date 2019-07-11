@@ -28,13 +28,13 @@ public class UserLogin extends JPanel {
 
         JPanel panel = new JPanel();
         panel.setLayout(new GridLayout(3, 2, 5, 5));
-        JLabel usernameLabel = new JLabel("Username");
-        JLabel passwordLabel = new JLabel("Password");
+        JLabel usernameLabel = new JLabel("Пользователь");
+        JLabel passwordLabel = new JLabel("Пароль");
         JTextField textField = new JTextField();
         JPasswordField passwordField = new JPasswordField();
         JButton okButton = new JButton("OK");
         okButton.addActionListener(e -> validateAction(textField, passwordField));
-        JButton cancelButton = new JButton("CANCEL");
+        JButton cancelButton = new JButton("Отмена");
         cancelButton.addActionListener(e -> exitAction());
         panel.add(usernameLabel);
         panel.add(textField);
@@ -58,13 +58,13 @@ public class UserLogin extends JPanel {
                 break;
             case UNAUTHORIZED:
             default:
-                JOptionPane.showMessageDialog(this, "Incorrect login or password", "Error", JOptionPane.ERROR_MESSAGE);
+                JOptionPane.showMessageDialog(this, "Неправильный логин или пароль", "Ошибка", JOptionPane.ERROR_MESSAGE);
         }
     }
 
     private void exitAction() {
         int confirmDialog = JOptionPane.showConfirmDialog(
-            this, "Are you sure you want to quit?", "Please confirm", JOptionPane.YES_NO_OPTION);
+            this, "Вы действительно хотите выйти?", "Подтверждение", JOptionPane.YES_NO_OPTION);
         if (confirmDialog == JOptionPane.YES_OPTION) {
             System.exit(0);
         }
