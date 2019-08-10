@@ -5,8 +5,10 @@ import com.dww.insurance.domain.DamageReport;
 import com.dww.insurance.domain.QueryParam;
 import com.dww.insurance.domain.SearchResult;
 import com.dww.insurance.model.SearchResultTableModel;
-import com.dww.insurance.service.DriverRepository;
-import com.dww.insurance.service.SearchRepository;
+import com.dww.insurance.repository.DamageInfoRepository;
+import com.dww.insurance.repository.SearchRepository;
+import com.dww.insurance.service.DamageReportService;
+import com.dww.insurance.service.ServiceLocator;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
@@ -24,14 +26,15 @@ public class SearchFrame extends JPanel {
     private static final int BASE_WIDTH = 240;
     private static final int BASE_HEIGHT = 20;
 
-    private final DriverRepository driverRepository;
-    private final SearchRepository searchRepository;
+    private SearchRepository searchRepository;
+    private DamageReportService damageReportService = ServiceLocator.getService(DamageReportService.class);
+
 
     private JTextField surnameTextField;
     private JTextField ownerTextField;
     private JTextField bodyTextField;
     private DefaultListModel<SearchResult> listModel = new DefaultListModel<>();
-    private IApplication app;
+    private IMainFrame app;
 
     private JLabel driverSurname;
     private JLabel driverName;
@@ -49,11 +52,9 @@ public class SearchFrame extends JPanel {
 
     private JTable table;
 
-
-    public SearchFrame(IApplication app) {
+    public SearchFrame(IMainFrame app) {
         this.app = app;
         searchRepository = new SearchRepository();
-        driverRepository = new DriverRepository();
         initialize();
     }
 
@@ -75,12 +76,12 @@ public class SearchFrame extends JPanel {
         bottomPanel.setBounds(75, 515, 200, 40);
         bottomPanel.setVisible(false);
 
-        JButton editBtn = new JButton("Изменить");
+        JButton editBtn = new JButton("пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ");
         editBtn.addActionListener(event -> {
             SearchFrame.this.updateUI();
             app.edit(report);
         });
-        JButton deleteButton = new JButton("Удалить");
+        JButton deleteButton = new JButton("пїЅпїЅпїЅпїЅпїЅпїЅпїЅ");
         deleteButton.setBackground(new Color(250, 128, 114));
         deleteButton.addActionListener(event -> delete());
 
@@ -90,7 +91,7 @@ public class SearchFrame extends JPanel {
     }
 
     private void initDamageInfoTab() {
-        JLabel lblDamage = new JLabel("Повреждения:");
+        JLabel lblDamage = new JLabel("пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ:");
         lblDamage.setBounds(260, BASE_LINE, 100, BASE_HEIGHT);
         add(lblDamage);
 
@@ -149,7 +150,7 @@ public class SearchFrame extends JPanel {
     }
 
     private void initDriverInfoTab() {
-        JLabel driverInfoLabel = new JLabel("О водителе :");
+        JLabel driverInfoLabel = new JLabel("пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ :");
         driverInfoLabel.setBounds(20, BASE_LINE, 240, BASE_HEIGHT);
         add(driverInfoLabel);
 
@@ -179,7 +180,7 @@ public class SearchFrame extends JPanel {
     }
 
     private void initVehicleTab() {
-        JLabel lblVehicleInfo = new JLabel("О т/с:");
+        JLabel lblVehicleInfo = new JLabel("пїЅ пїЅ/пїЅ:");
         lblVehicleInfo.setBounds(20, 340, BASE_WIDTH, 20);
         add(lblVehicleInfo);
 
@@ -204,33 +205,33 @@ public class SearchFrame extends JPanel {
         JPanel searchPanel = new JPanel(new FlowLayout());
         searchPanel.setBounds(2, 5, 780, 40);
 
-        searchPanel.add(new JLabel("Фамилия"));
+        searchPanel.add(new JLabel("пїЅпїЅпїЅпїЅпїЅпїЅпїЅ"));
 
         surnameTextField = new JTextField(7);
         searchPanel.add(surnameTextField);
 
-        searchPanel.add(new JLabel("Инд.№"));
+        searchPanel.add(new JLabel("пїЅпїЅпїЅ.пїЅ"));
 
         ownerTextField = new JTextField(7);
         searchPanel.add(ownerTextField);
 
-        searchPanel.add(new JLabel("№ Кузова"));
+        searchPanel.add(new JLabel("пїЅ пїЅпїЅпїЅпїЅпїЅпїЅ"));
 
         bodyTextField = new JTextField(7);
         searchPanel.add(bodyTextField);
 
-        JButton btnSearch = new JButton("Поиск");
+        JButton btnSearch = new JButton("пїЅпїЅпїЅпїЅпїЅ");
         btnSearch.addActionListener(event -> search());
         searchPanel.add(btnSearch);
 
-        JButton btnAdd = new JButton("Добавить");
+        JButton btnAdd = new JButton("пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ");
         btnAdd.addActionListener(e -> {
             SearchFrame.this.updateUI();
             app.edit();
         });
         searchPanel.add(btnAdd);
 
-        JButton clearButton = new JButton("Очистить");
+        JButton clearButton = new JButton("пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ");
         clearButton.addActionListener(e -> {
             surnameTextField.setText("");
             ownerTextField.setText("");
@@ -238,7 +239,7 @@ public class SearchFrame extends JPanel {
         });
         searchPanel.add(clearButton);
 
-        JButton btnLogout = new JButton("Выйти");
+        JButton btnLogout = new JButton("пїЅпїЅпїЅпїЅпїЅ");
         btnLogout.addActionListener(e -> {
             SearchFrame.this.updateUI();
             app.login();
@@ -266,11 +267,9 @@ public class SearchFrame extends JPanel {
     private void delete() {
         if (report != null) {
             int confirmDialog = JOptionPane.showConfirmDialog(
-                this, "Действительно удалить?", "Подтверждение", JOptionPane.YES_NO_OPTION);
+                this, "пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ?", "пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ", JOptionPane.YES_NO_OPTION);
             if (confirmDialog == JOptionPane.YES_OPTION) {
-                driverRepository.deleteDamageInfo(report.getDamageInfo().getId());
-                driverRepository.deleteVehicleInfo(report.getVehicleInfo().getId());
-                driverRepository.deleteDriverInfo(report.getDriverInfo().getId());
+                damageReportService.delete(report);
                 bottomPanel.setVisible(false);
                 initialize();
                 search();
@@ -284,16 +283,16 @@ public class SearchFrame extends JPanel {
     }
 
     private void populateDamageReport(DamageReport report) {
-        driverPassId.setText("<html>Номер паспорта : " + (report == null ? "" : "<br>" + report.getDriverInfo().getPassId())+"</html>");
-        driverSurname.setText("Фамилия : " + (report == null ? "" : "\n" + report.getDriverInfo().getLastName()));
-        driverName.setText("Имя : " + (report == null ? "" : report.getDriverInfo().getName()));
-        driverAddress.setText("Адрес : " + (report == null ? "" : "\n" + report.getDriverInfo().getAddress()));
-        driverPhone.setText("Телефон : " + (report == null ? "" : "\n" + report.getDriverInfo().getPhone()));
+        driverPassId.setText("<html>пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ : " + (report == null ? "" : "<br>" + report.getDriverInfo().getPassId())+"</html>");
+        driverSurname.setText("пїЅпїЅпїЅпїЅпїЅпїЅпїЅ : " + (report == null ? "" : "\n" + report.getDriverInfo().getLastName()));
+        driverName.setText("пїЅпїЅпїЅ : " + (report == null ? "" : report.getDriverInfo().getName()));
+        driverAddress.setText("пїЅпїЅпїЅпїЅпїЅ : " + (report == null ? "" : "\n" + report.getDriverInfo().getAddress()));
+        driverPhone.setText("пїЅпїЅпїЅпїЅпїЅпїЅпїЅ : " + (report == null ? "" : "\n" + report.getDriverInfo().getPhone()));
 
-        vehicleModel.setText("Модель : " + (report == null ? "" : "\n" + report.getVehicleInfo().getModel()));
-        vehicleType.setText("Тип : " + (report == null ? "" : "\n" + report.getVehicleInfo().getType()));
-        vehicleNumber.setText("Номер : " + (report == null ? "" : "\n" + report.getVehicleInfo().getNumber()));
-        vehicleBodyId.setText("<html>Номер кузова : " + (report == null ? "" : "<br>" + report.getVehicleInfo().getBodyId())+"</html>");
+        vehicleModel.setText("пїЅпїЅпїЅпїЅпїЅпїЅ : " + (report == null ? "" : "\n" + report.getVehicleInfo().getModel()));
+        vehicleType.setText("пїЅпїЅпїЅ : " + (report == null ? "" : "\n" + report.getVehicleInfo().getType()));
+        vehicleNumber.setText("пїЅпїЅпїЅпїЅпїЅ : " + (report == null ? "" : "\n" + report.getVehicleInfo().getNumber()));
+        vehicleBodyId.setText("<html>пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ : " + (report == null ? "" : "<br>" + report.getVehicleInfo().getBodyId())+"</html>");
         damageZone(report == null ? null : report.getDamageInfo());
         if (report != null) {
             bottomPanel.setVisible(true);
@@ -305,23 +304,23 @@ public class SearchFrame extends JPanel {
         if (damageInfo != null) wIcon.removeAll();
 
         int topPosition = 42;
-        wIcon.add(zoneLabel(155, topPosition, damageInfo != null && damageInfo.getDamage().getDamageZone()[9])); // zone 10
-        wIcon.add(zoneLabel(216, topPosition, damageInfo != null && damageInfo.getDamage().getDamageZone()[8])); // zone 9
-        wIcon.add(zoneLabel(275, topPosition, damageInfo != null && damageInfo.getDamage().getDamageZone()[7])); // zone 8
-        wIcon.add(zoneLabel(343, topPosition, damageInfo != null && damageInfo.getDamage().getDamageZone()[6])); // zone 7
+        wIcon.add(zoneLabel(155, topPosition, damageInfo != null && damageInfo.getDamageZone()[9])); // zone 10
+        wIcon.add(zoneLabel(216, topPosition, damageInfo != null && damageInfo.getDamageZone()[8])); // zone 9
+        wIcon.add(zoneLabel(275, topPosition, damageInfo != null && damageInfo.getDamageZone()[7])); // zone 8
+        wIcon.add(zoneLabel(343, topPosition, damageInfo != null && damageInfo.getDamageZone()[6])); // zone 7
 
         int midPosition = 164;
-        wIcon.add(zoneLabel(17, midPosition, damageInfo != null && damageInfo.getDamage().getDamageZone()[12])); // zone 13
-        wIcon.add(zoneLabel(128, midPosition, damageInfo != null && damageInfo.getDamage().getDamageZone()[11])); // zone 12
-        wIcon.add(zoneLabel(264, midPosition, damageInfo != null && damageInfo.getDamage().getDamageZone()[10])); // zone 11
-        wIcon.add(zoneLabel(357, midPosition, damageInfo != null && damageInfo.getDamage().getDamageZone()[5])); // zone 6
-        wIcon.add(zoneLabel(437, midPosition, damageInfo != null && damageInfo.getDamage().getDamageZone()[4])); // zone 5
+        wIcon.add(zoneLabel(17, midPosition, damageInfo != null && damageInfo.getDamageZone()[12])); // zone 13
+        wIcon.add(zoneLabel(128, midPosition, damageInfo != null && damageInfo.getDamageZone()[11])); // zone 12
+        wIcon.add(zoneLabel(264, midPosition, damageInfo != null && damageInfo.getDamageZone()[10])); // zone 11
+        wIcon.add(zoneLabel(357, midPosition, damageInfo != null && damageInfo.getDamageZone()[5])); // zone 6
+        wIcon.add(zoneLabel(437, midPosition, damageInfo != null && damageInfo.getDamageZone()[4])); // zone 5
 
         int botPosition = 288 ;
-        wIcon.add(zoneLabel(150, botPosition, damageInfo != null && damageInfo.getDamage().getDamageZone()[0])); // zone 1
-        wIcon.add(zoneLabel(216, botPosition, damageInfo != null && damageInfo.getDamage().getDamageZone()[1])); // zone 2
-        wIcon.add(zoneLabel(277, botPosition, damageInfo != null && damageInfo.getDamage().getDamageZone()[2])); // zone 3
-        wIcon.add(zoneLabel(344, botPosition, damageInfo != null && damageInfo.getDamage().getDamageZone()[3])); // zone 4
+        wIcon.add(zoneLabel(150, botPosition, damageInfo != null && damageInfo.getDamageZone()[0])); // zone 1
+        wIcon.add(zoneLabel(216, botPosition, damageInfo != null && damageInfo.getDamageZone()[1])); // zone 2
+        wIcon.add(zoneLabel(277, botPosition, damageInfo != null && damageInfo.getDamageZone()[2])); // zone 3
+        wIcon.add(zoneLabel(344, botPosition, damageInfo != null && damageInfo.getDamageZone()[3])); // zone 4
 
         wIcon.repaint();
     }

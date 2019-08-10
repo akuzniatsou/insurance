@@ -9,8 +9,7 @@ public class DamageReport {
     public DamageReport() {
         driverInfo = new DriverInfo();
         vehicleInfo = new VehicleInfo();
-        damageInfo = new DamageInfo();
-        damageInfo.setDamage(new Damage(new boolean[13]));
+        damageInfo = new DamageInfo(new boolean[13]);
     }
 
     public DamageReport(DriverInfo driverInfo, VehicleInfo vehicleInfo, DamageInfo damageInfo) {

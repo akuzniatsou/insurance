@@ -2,15 +2,15 @@ package com.dww.insurance.domain;
 
 import java.util.Objects;
 
-public class Credentials {
+public class User {
     private String login;
     private String password;
     private UserRole role = UserRole.UNAUTHORIZED;
 
-    public Credentials() {
+    public User() {
     }
 
-    public Credentials(String login, String password) {
+    public User(String login, String password) {
         this.login = login;
         this.password = password;
     }
@@ -42,7 +42,7 @@ public class Credentials {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        Credentials that = (Credentials) o;
+        User that = (User) o;
         return Objects.equals(login, that.login) &&
                 Objects.equals(password, that.password) &&
                 role == that.role;

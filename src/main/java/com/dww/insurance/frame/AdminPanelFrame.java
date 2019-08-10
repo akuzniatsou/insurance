@@ -1,22 +1,22 @@
 package com.dww.insurance.frame;
 
-import com.dww.insurance.domain.Credentials;
+import com.dww.insurance.domain.User;
 import com.dww.insurance.domain.UserRole;
 import com.dww.insurance.model.UserTableModel;
-import com.dww.insurance.service.UserRepository;
+import com.dww.insurance.service.ServiceLocator;
+import com.dww.insurance.service.UserService;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.net.URI;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
 public class AdminPanelFrame extends JPanel {
 
-    private final UserRepository userRepository;
+    private UserService userService = ServiceLocator.getService(UserService.class);
 
     private JTextField searchLoginTextField = new JTextField(22);
     private JTextField newLoginTextField = new JTextField(22);
@@ -25,16 +25,15 @@ public class AdminPanelFrame extends JPanel {
     private JComboBox<UserRole> newRole;
 
     private JComboBox<UserRole> userRoleComboBox;
-    private DefaultListModel<Credentials> listModel = new DefaultListModel<>();
-    private IApplication app;
+    private DefaultListModel<User> listModel = new DefaultListModel<>();
+    private IMainFrame app;
 
     private JPanel bottomPanel;
-    private Credentials credentials = new Credentials();
+    private User credentials = new User();
     private JTable table;
 
-    public AdminPanelFrame(IApplication app) {
+    public AdminPanelFrame(IMainFrame app) {
         this.app = app;
-        userRepository = new UserRepository();
         initialize();
     }
 
@@ -53,7 +52,7 @@ public class AdminPanelFrame extends JPanel {
         searchResultSeparator.setBounds(5, 50, 785, 2);
         add(searchResultSeparator);
 
-        List<Credentials> tableData = new ArrayList<>();
+        List<User> tableData = new ArrayList<>();
         UserTableModel tableModel = new UserTableModel(tableData);
         table = new JTable(tableModel);
         table.setAutoCreateRowSorter(true);
@@ -74,12 +73,12 @@ public class AdminPanelFrame extends JPanel {
         JPanel searchPanel = new JPanel(new FlowLayout());
         searchPanel.setBounds(20, 5, 750, 40);
 
-        searchPanel.add(new JLabel("Логин"));
+        searchPanel.add(new JLabel("пїЅпїЅпїЅпїЅпїЅ"));
 
         searchLoginTextField = new JTextField(10);
         searchPanel.add(searchLoginTextField);
 
-        searchPanel.add(new JLabel("Роль"));
+        searchPanel.add(new JLabel("пїЅпїЅпїЅпїЅ"));
 
         JPanel type = new JPanel(new BorderLayout());
         userRoleComboBox = new JComboBox<>(UserRole.values());
@@ -87,11 +86,11 @@ public class AdminPanelFrame extends JPanel {
         type.add(userRoleComboBox);
         searchPanel.add(type);
 
-        JButton btnSearch = new JButton("Поиск");
+        JButton btnSearch = new JButton("пїЅпїЅпїЅпїЅпїЅ");
         btnSearch.addActionListener(event -> search());
         searchPanel.add(btnSearch);
 
-        JButton clearButton = new JButton("Очистить");
+        JButton clearButton = new JButton("пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ");
         clearButton.addActionListener(e -> {
             searchLoginTextField.setText("");
             userRoleComboBox.setSelectedItem(UserRole.ALL);
@@ -100,7 +99,7 @@ public class AdminPanelFrame extends JPanel {
         });
         searchPanel.add(clearButton);
 
-        JButton btnLogout = new JButton("Выйти");
+        JButton btnLogout = new JButton("пїЅпїЅпїЅпїЅпїЅ");
         btnLogout.addActionListener(e -> {
             AdminPanelFrame.this.updateUI();
             app.login();
@@ -116,12 +115,12 @@ public class AdminPanelFrame extends JPanel {
         bottomPanel.setBounds(90, 520, 200, 40);
         bottomPanel.setVisible(true);
 
-        JButton addBtn = new JButton("Сохранить");
+        JButton addBtn = new JButton("пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ");
         addBtn.addActionListener(event -> {
             AdminPanelFrame.this.updateUI();
             save();
         });
-        deleteButton = new JButton("Удалить");
+        deleteButton = new JButton("пїЅпїЅпїЅпїЅпїЅпїЅпїЅ");
         deleteButton.setBackground(new Color(250, 128, 114));
         deleteButton.addActionListener(event -> delete());
         deleteButton.setVisible(false);
@@ -137,7 +136,7 @@ public class AdminPanelFrame extends JPanel {
         addUserTab.setLayout(new BoxLayout(addUserTab, BoxLayout.Y_AXIS));
 
         JPanel title = new JPanel(new BorderLayout());
-        title.add(new JLabel("Добавить пользователя"), BorderLayout.WEST);
+        title.add(new JLabel("пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ"), BorderLayout.WEST);
 
         JPanel role = new JPanel(new BorderLayout());
         newRole = new JComboBox<>();
@@ -150,9 +149,9 @@ public class AdminPanelFrame extends JPanel {
         addUserTab.add(title);
         addUserTab.add(new JSeparator());
         addUserTab.add(Box.createVerticalStrut(5));
-        addUserTab.add("Login", createComponent("Логин", newLoginTextField));
-        addUserTab.add("Pass", createComponent("Пароль", newPassTextField));
-        addUserTab.add("Role", createComponent("Роль", role));
+        addUserTab.add("Login", createComponent("пїЅпїЅпїЅпїЅпїЅ", newLoginTextField));
+        addUserTab.add("Pass", createComponent("пїЅпїЅпїЅпїЅпїЅпїЅ", newPassTextField));
+        addUserTab.add("Role", createComponent("пїЅпїЅпїЅпїЅ", role));
 
         addUserTab.setVisible(true);
         add(addUserTab);
@@ -160,13 +159,13 @@ public class AdminPanelFrame extends JPanel {
 
     private void save() {
         if (empty(newLoginTextField, newLoginTextField) && newRole.getSelectedItem() == UserRole.UNAUTHORIZED) {
-            JOptionPane.showMessageDialog(this, "Пожалуйста заполните все поля", "Ошибка", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(this, "пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅ", "пїЅпїЅпїЅпїЅпїЅпїЅ", JOptionPane.ERROR_MESSAGE);
         } else {
-            Credentials credentials = new Credentials();
+            User credentials = new User();
             credentials.setRole((UserRole) newRole.getSelectedItem());
             credentials.setLogin(newLoginTextField.getText());
             credentials.setPassword(String.valueOf(newPassTextField.getPassword()));
-            userRepository.insertUser(credentials);
+            userService.insertUser(credentials);
             clearNewUser();
         }
     }
@@ -180,9 +179,9 @@ public class AdminPanelFrame extends JPanel {
     private void delete() {
         if (credentials != null && credentials.getLogin() != null) {
             int confirmDialog = JOptionPane.showConfirmDialog(
-                    this, "Вы действительно хотите удалить это?", "Подтвердите", JOptionPane.YES_NO_OPTION);
+                    this, "пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ?", "пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ", JOptionPane.YES_NO_OPTION);
             if (confirmDialog == JOptionPane.YES_OPTION) {
-                userRepository.deleteUser(credentials.getLogin());
+                userService.deleteUser(credentials.getLogin());
                 bottomPanel.setVisible(false);
                 initialize();
                 search();
@@ -192,16 +191,16 @@ public class AdminPanelFrame extends JPanel {
 
     private void search() {
         deleteButton.setVisible(false);
-        List<Credentials> searchResults;
+        List<User> searchResults;
         if (searchLoginTextField.getText().isEmpty()
                 && UserRole.valueOf(userRoleComboBox.getSelectedItem().toString()) == UserRole.ALL) {
-            searchResults = userRepository.findUsers();
+            searchResults = userService.findUsers();
             searchResults.forEach(person -> listModel.addElement(person));
             table.setModel(new UserTableModel(searchResults));
         } else {
-            Credentials credentials = new Credentials(searchLoginTextField.getText(), null);
+            User credentials = new User(searchLoginTextField.getText(), null);
             credentials.setRole(UserRole.valueOf(userRoleComboBox.getSelectedItem().toString()));
-            searchResults = userRepository.find(credentials);
+            searchResults = userService.find(credentials);
             searchResults.forEach(person -> listModel.addElement(person));
             table.setModel(new UserTableModel(searchResults));
         }

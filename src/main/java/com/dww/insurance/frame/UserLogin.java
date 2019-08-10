@@ -1,7 +1,8 @@
 package com.dww.insurance.frame;
 
-import com.dww.insurance.domain.Credentials;
-import com.dww.insurance.service.UserRepository;
+import com.dww.insurance.domain.User;
+import com.dww.insurance.service.ServiceLocator;
+import com.dww.insurance.service.UserService;
 
 import javax.swing.*;
 import java.awt.*;
@@ -9,12 +10,11 @@ import java.awt.*;
 
 public class UserLogin extends JPanel {
 
-    private UserRepository userRepository;
-    private IApplication app;
+    private UserService userService = ServiceLocator.getService(UserService.class);
+    private IMainFrame app;
 
-    public UserLogin(IApplication app) {
+    public UserLogin(IMainFrame app) {
         this.app = app;
-        userRepository = new UserRepository();
         initialize();
     }
 
@@ -28,13 +28,13 @@ public class UserLogin extends JPanel {
 
         JPanel panel = new JPanel();
         panel.setLayout(new GridLayout(3, 2, 5, 5));
-        JLabel usernameLabel = new JLabel("Пользователь");
-        JLabel passwordLabel = new JLabel("Пароль");
+        JLabel usernameLabel = new JLabel("пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ");
+        JLabel passwordLabel = new JLabel("пїЅпїЅпїЅпїЅпїЅпїЅ");
         JTextField textField = new JTextField();
         JPasswordField passwordField = new JPasswordField();
         JButton okButton = new JButton("OK");
         okButton.addActionListener(e -> validateAction(textField, passwordField));
-        JButton cancelButton = new JButton("Отмена");
+        JButton cancelButton = new JButton("пїЅпїЅпїЅпїЅпїЅпїЅ");
         cancelButton.addActionListener(e -> exitAction());
         panel.add(usernameLabel);
         panel.add(textField);
@@ -48,7 +48,7 @@ public class UserLogin extends JPanel {
     }
 
     private void validateAction(JTextField textField, JPasswordField passwordField) {
-        Credentials credentials = userRepository.authorize(new Credentials(textField.getText(), String.valueOf(passwordField.getPassword())));
+        User credentials = userService.authorize(new User(textField.getText(), String.valueOf(passwordField.getPassword())));
         switch (credentials.getRole()) {
             case USER:
                 app.search();
@@ -58,13 +58,13 @@ public class UserLogin extends JPanel {
                 break;
             case UNAUTHORIZED:
             default:
-                JOptionPane.showMessageDialog(this, "Неправильный логин или пароль", "Ошибка", JOptionPane.ERROR_MESSAGE);
+                JOptionPane.showMessageDialog(this, "пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ", "пїЅпїЅпїЅпїЅпїЅпїЅ", JOptionPane.ERROR_MESSAGE);
         }
     }
 
     private void exitAction() {
         int confirmDialog = JOptionPane.showConfirmDialog(
-            this, "Вы действительно хотите выйти?", "Подтверждение", JOptionPane.YES_NO_OPTION);
+            this, "пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ?", "пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ", JOptionPane.YES_NO_OPTION);
         if (confirmDialog == JOptionPane.YES_OPTION) {
             System.exit(0);
         }

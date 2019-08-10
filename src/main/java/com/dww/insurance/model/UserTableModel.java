@@ -1,6 +1,6 @@
 package com.dww.insurance.model;
 
-import com.dww.insurance.domain.Credentials;
+import com.dww.insurance.domain.User;
 
 import javax.swing.table.AbstractTableModel;
 import java.util.List;
@@ -8,9 +8,9 @@ import java.util.List;
 public class UserTableModel extends AbstractTableModel {
 
     private String[] columns = {"Login", "Pass", "Role"};
-    private List<Credentials> list;
+    private List<User> list;
 
-    public UserTableModel(List<Credentials> list) {
+    public UserTableModel(List<User> list) {
         this.list = list;
     }
 
@@ -43,7 +43,7 @@ public class UserTableModel extends AbstractTableModel {
         return temp;
     }
 
-    public Credentials getValue(int rowIndex) {
+    public User getValue(int rowIndex) {
         return list.get(rowIndex);
     }
 

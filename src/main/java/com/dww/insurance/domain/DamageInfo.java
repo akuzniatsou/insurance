@@ -6,7 +6,11 @@ public class DamageInfo {
 
     private int id;
     private Date date;
-    private Damage damage;
+    private boolean[] damageZone;
+
+    public DamageInfo(boolean[] damageZone) {
+        this.damageZone = damageZone;
+    }
 
     public int getId() {
         return id;
@@ -24,11 +28,12 @@ public class DamageInfo {
         this.date = date;
     }
 
-    public Damage getDamage() {
-        return damage;
+    public boolean[] getDamageZone() {
+        return damageZone;
     }
 
-    public void setDamage(Damage damage) {
-        this.damage = damage;
+    public void setDamageZone(boolean[] damageZone) {
+        this.damageZone = damageZone;
     }
+
 }

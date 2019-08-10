@@ -1,32 +1,32 @@
-package com.dww.insurance.service;
+package com.dww.insurance.repository;
 
-import com.dww.insurance.domain.Damage;
 import com.dww.insurance.domain.DamageInfo;
 import com.dww.insurance.domain.DamageReport;
 import com.dww.insurance.domain.DriverInfo;
-import com.dww.insurance.domain.SearchResult;
 import com.dww.insurance.domain.QueryParam;
+import com.dww.insurance.domain.SearchResult;
 import com.dww.insurance.domain.VehicleInfo;
 import com.dww.insurance.domain.VehicleType;
 
 import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Properties;
 
 public class SearchRepository {
 
-    private Properties props = AppProperties.getInstance().getAppProps();
+    private static final String SELECT_STATEMENT =
+        "SELECT * FROM owner JOIN vehicle v on owner.id = v.owner_id JOIN damage d on v.id = d.vehicle_id WHERE owner.id = ?";
+    private static final String SELECT_ALL_STATEMENT =
+        "select o.id, o.name, o.last_name, v.body_number from owner o join vehicle v on o.id = v.owner_id order by o.id";
 
     public List<SearchResult> find(QueryParam queryParam) {
         Connection conn = null;
-        PreparedStatement stmt = null;
+        PreparedStatement stmt;
         try {
-            conn = DriverManager.getConnection(props.getProperty("url"), props.getProperty("user"), props.getProperty("password"));
+            conn = ConnectionPool.getInstance().getConnection();
             List<Object> parameters = new ArrayList<>();
             StringBuilder query = new StringBuilder("select o.id, o.name, o.last_name, v.body_number from owner o join vehicle v on o.id = v.owner_id where 1=1");
             if (queryParam.getOwnerId() > 0) {
@@ -60,17 +60,16 @@ public class SearchRepository {
             ex.printStackTrace();
             throw new RuntimeException(ex);
         } finally {
-            closeConnection(conn, stmt);
+            ConnectionPool.getInstance().releaseConnection(conn);
         }
     }
 
     public List<SearchResult> searchAll() {
         Connection conn = null;
-        PreparedStatement stmt = null;
-
+        PreparedStatement stmt;
         try {
-            conn = DriverManager.getConnection(props.getProperty("url"), props.getProperty("user"), props.getProperty("password"));
-            stmt = conn.prepareStatement("select o.id, o.name, o.last_name, v.body_number from owner o join vehicle v on o.id = v.owner_id order by o.id");
+            conn = ConnectionPool.getInstance().getConnection();
+            stmt = conn.prepareStatement(SELECT_ALL_STATEMENT);
             ResultSet rs = stmt.executeQuery();
             List<SearchResult> persons = new ArrayList<>();
             while (rs.next()) {
@@ -81,20 +80,18 @@ public class SearchRepository {
             ex.printStackTrace();
             throw new RuntimeException(ex);
         } finally {
-            closeConnection(conn, stmt);
+            ConnectionPool.getInstance().releaseConnection(conn);
         }
 
     }
 
     public DamageReport searchDriverInfo(int ownerId) {
         Connection conn = null;
-        PreparedStatement stmt = null;
-
+        PreparedStatement stmt;
         try {
-            conn = DriverManager.getConnection(props.getProperty("url"), props.getProperty("user"), props.getProperty("password"));
-            stmt = conn.prepareStatement("SELECT * FROM owner JOIN vehicle v on owner.id = v.owner_id JOIN damage d on v.id = d.vehicle_id WHERE owner.id = ?");
+            conn = ConnectionPool.getInstance().getConnection();
+            stmt = conn.prepareStatement(SELECT_STATEMENT);
             stmt.setInt(1, ownerId);
-
             ResultSet rs = stmt.executeQuery();
             if (rs.wasNull()) {
                 return null;
@@ -115,10 +112,10 @@ public class SearchRepository {
                 vehicleInfo.setBodyId(rs.getString(11));
                 vehicleInfo.setModel(rs.getString(12));
 
-                DamageInfo damageInfo = new DamageInfo();
+                DamageInfo damageInfo = new DamageInfo(new boolean[13]);
                 damageInfo.setId(rs.getInt(13));
                 damageInfo.setDate(rs.getDate(15));
-                damageInfo.setDamage(new Damage(new boolean[]{
+                damageInfo.setDamageZone(new boolean[]{
                     rs.getBoolean(16),
                     rs.getBoolean(17),
                     rs.getBoolean(18),
@@ -136,7 +133,7 @@ public class SearchRepository {
                     rs.getBoolean(27),
 
                     rs.getBoolean(28)
-                }));
+                });
 
                 DamageReport damageReport = new DamageReport();
                 damageReport.setDriverInfo(driverInfo);
@@ -150,26 +147,7 @@ public class SearchRepository {
             ex.printStackTrace();
             throw new RuntimeException(ex);
         } finally {
-            closeConnection(conn, stmt);
-        }
-    }
-
-    private void closeConnection(Connection conn, PreparedStatement stmt) {
-        try {
-            if (stmt != null) {
-                stmt.close();
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-            throw new RuntimeException(e);
-        }
-        try {
-            if (conn != null) {
-                conn.close();
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-            throw new RuntimeException(e);
+            ConnectionPool.getInstance().releaseConnection(conn);
         }
     }
 

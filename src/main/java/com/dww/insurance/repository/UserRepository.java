@@ -1,4 +1,4 @@
-package com.dww.insurance.service;
+package com.dww.insurance.repository;
 
 import com.dww.insurance.domain.*;
 
@@ -8,48 +8,50 @@ import java.security.NoSuchAlgorithmException;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Properties;
 
 public class UserRepository {
 
-    private Properties props = AppProperties.getInstance().getAppProps();
+    private static final String SELECT_STATEMENT = "select user_role from public.user where login = ? and pass = ?";
+    private static final String SELECT_ALL_STATEMENT = "select * from public.user";
+    private static final String DELETE_STATEMENT = "delete from public.user where login = ?";
+    private static final String INSERT_STATEMENT = "insert into public.user (login, pass, user_role) values (?,?,?)";
 
-    public Credentials authorize(Credentials credentials) {
+    public User authorize(User user) {
         Connection conn = null;
-        PreparedStatement stmt = null;
+        PreparedStatement stmt;
         try {
             MessageDigest md = MessageDigest.getInstance("MD5");
-            md.update(credentials.getPassword().getBytes());
+            md.update(user.getPassword().getBytes());
             byte[] digest = md.digest();
             String hash = DatatypeConverter.printHexBinary(digest).toUpperCase();
 
-            conn = DriverManager.getConnection(props.getProperty("url"), props.getProperty("user"), props.getProperty("password"));
-            stmt = conn.prepareStatement("select user_role from public.user where login = ? and pass = ?");
-            stmt.setString(1, credentials.getLogin());
+            conn = ConnectionPool.getInstance().getConnection();
+            stmt = conn.prepareStatement(SELECT_STATEMENT);
+            stmt.setString(1, user.getLogin());
             stmt.setString(2, hash);
             ResultSet rs = stmt.executeQuery();
             while (rs.next()) {
-                credentials.setRole(UserRole.lookupById(rs.getInt(1)));
+                user.setRole(UserRole.lookupById(rs.getInt(1)));
             }
-            return credentials;
+            return user;
         } catch (SQLException | NoSuchAlgorithmException ex) {
             ex.printStackTrace();
             throw new RuntimeException(ex);
         } finally {
-            closeConnection(conn, stmt);
+            ConnectionPool.getInstance().releaseConnection(conn);
         }
     }
 
-    public List<Credentials> findUsers() {
+    public List<User> findUsers() {
         Connection conn = null;
-        PreparedStatement stmt = null;
+        PreparedStatement stmt;
         try {
-            conn = DriverManager.getConnection(props.getProperty("url"), props.getProperty("user"), props.getProperty("password"));
-            stmt = conn.prepareStatement("select * from public.user");
+            conn = ConnectionPool.getInstance().getConnection();
+            stmt = conn.prepareStatement(SELECT_ALL_STATEMENT);
             ResultSet rs = stmt.executeQuery();
-            List<Credentials> credentialsList = new ArrayList<>();
+            List<User> credentialsList = new ArrayList<>();
             while (rs.next()) {
-                Credentials credentials = new Credentials(rs.getString(1), rs.getString(2));
+                User credentials = new User(rs.getString(1), rs.getString(2));
                 credentials.setRole(UserRole.lookupById(rs.getInt(3)));
                 credentialsList.add(credentials);
             }
@@ -58,24 +60,24 @@ public class UserRepository {
             ex.printStackTrace();
             throw new RuntimeException(ex);
         } finally {
-            closeConnection(conn, stmt);
+            ConnectionPool.getInstance().releaseConnection(conn);
         }
     }
 
-    public List<Credentials> find(Credentials searchParam) {
+    public List<User> find(User user) {
         Connection conn = null;
-        PreparedStatement stmt = null;
+        PreparedStatement stmt;
         try {
-            conn = DriverManager.getConnection(props.getProperty("url"), props.getProperty("user"), props.getProperty("password"));
+            conn = ConnectionPool.getInstance().getConnection();
             List<Object> parameters = new ArrayList<>();
             StringBuilder query = new StringBuilder("select * from public.user where 1=1");
-            if (searchParam.getRole() != UserRole.ALL && searchParam.getRole() != null) {
+            if (user.getRole() != UserRole.ALL && user.getRole() != null) {
                 query.append(" and user_role = ?");
-                parameters.add(searchParam.getRole().getId());
+                parameters.add(user.getRole().getId());
             }
-            if (!isBlank(searchParam.getLogin())) {
+            if (!isBlank(user.getLogin())) {
                 query.append(" and login ilike ?");
-                parameters.add(searchParam.getLogin());
+                parameters.add(user.getLogin());
             }
             stmt = conn.prepareStatement(query.toString());
             for (int i = 0; i < parameters.size(); i++) {
@@ -87,9 +89,9 @@ public class UserRepository {
                 }
             }
             ResultSet rs = stmt.executeQuery();
-            List<Credentials> credentialsList = new ArrayList<>();
+            List<User> credentialsList = new ArrayList<>();
             while (rs.next()) {
-                Credentials credentials = new Credentials(rs.getString(1), rs.getString(2));
+                User credentials = new User(rs.getString(1), rs.getString(2));
                 credentials.setRole(UserRole.lookupById(rs.getInt(3)));
                 credentialsList.add(credentials);
             }
@@ -98,67 +100,45 @@ public class UserRepository {
             ex.printStackTrace();
             throw new RuntimeException(ex);
         } finally {
-            closeConnection(conn, stmt);
+            ConnectionPool.getInstance().releaseConnection(conn);
         }
     }
 
     public void deleteUser(String login) {
         Connection conn = null;
-        PreparedStatement stmt = null;
+        PreparedStatement stmt;
         try {
-            conn = DriverManager.getConnection(props.getProperty("url"), props.getProperty("user"), props.getProperty("password"));
-            stmt = conn.prepareStatement("DELETE FROM public.user WHERE login = ?");
+            conn = ConnectionPool.getInstance().getConnection();
+            stmt = conn.prepareStatement(DELETE_STATEMENT);
             stmt.setString(1, login);
             stmt.executeUpdate();
         } catch (SQLException ex) {
             ex.printStackTrace();
             throw new RuntimeException(ex);
         } finally {
-            closeConnection(conn, stmt);
+            ConnectionPool.getInstance().releaseConnection(conn);
         }
     }
 
-    public void insertUser(Credentials credentials) {
+    public void insertUser(User user) {
         Connection conn = null;
-        PreparedStatement stmt = null;
-
+        PreparedStatement stmt;
         try {
-            conn = DriverManager.getConnection(props.getProperty("url"), props.getProperty("user"), props.getProperty("password"));
-
+            conn = ConnectionPool.getInstance().getConnection();
             MessageDigest md = MessageDigest.getInstance("MD5");
-            md.update(credentials.getPassword().getBytes());
+            md.update(user.getPassword().getBytes());
             byte[] digest = md.digest();
             String hash = DatatypeConverter.printHexBinary(digest).toUpperCase();
-
-            stmt = conn.prepareStatement("INSERT INTO public.user (login, pass, user_role) VALUES (?,?,?)");
-            stmt.setString(1, credentials.getLogin());
+            stmt = conn.prepareStatement(INSERT_STATEMENT);
+            stmt.setString(1, user.getLogin());
             stmt.setString(2, hash);
-            stmt.setInt(3, credentials.getRole().getId());
+            stmt.setInt(3, user.getRole().getId());
             stmt.executeUpdate();
         } catch (SQLException | NoSuchAlgorithmException ex) {
             ex.printStackTrace();
             throw new RuntimeException(ex);
         } finally {
-            closeConnection(conn, stmt);
-        }
-    }
-
-    private void closeConnection(Connection conn, PreparedStatement stmt) {
-        try {
-            if (stmt != null) {
-                stmt.close();
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-            throw new RuntimeException(e);
-        }
-        try {
-            if (conn != null) {
-                conn.close();
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-            throw new RuntimeException(e);
+            ConnectionPool.getInstance().releaseConnection(conn);
         }
     }
 

@@ -1,16 +1,19 @@
 package com.dww.insurance.frame;
 
-import com.dww.insurance.domain.Damage;
 import com.dww.insurance.domain.DamageInfo;
 import com.dww.insurance.domain.DamageReport;
 import com.dww.insurance.domain.DriverInfo;
 import com.dww.insurance.domain.VehicleInfo;
 import com.dww.insurance.domain.VehicleType;
-import com.dww.insurance.service.DriverRepository;
+import com.dww.insurance.service.DamageReportService;
+import com.dww.insurance.service.ServiceLocator;
 
-import javax.imageio.ImageIO;
-import javax.swing.*;
-import java.awt.*;
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.FlowLayout;
+import java.awt.Graphics;
+import java.awt.Image;
+import java.awt.Label;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
@@ -18,6 +21,17 @@ import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Objects;
+
+import javax.imageio.ImageIO;
+import javax.swing.BoxLayout;
+import javax.swing.ImageIcon;
+import javax.swing.JButton;
+import javax.swing.JComboBox;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JSeparator;
+import javax.swing.JTextField;
 
 
 public class EditFrame extends JPanel {
@@ -52,14 +66,14 @@ public class EditFrame extends JPanel {
 
     private JComboBox<VehicleType> vehicleTypeComboBox;
 
-    private DriverRepository driverRepository;
-    private IApplication app;
+    private DamageReportService damageReportService = ServiceLocator.getService(DamageReportService.class);
+
+    private IMainFrame app;
 
     private DamageReport report;
 
-    public EditFrame(IApplication app) {
+    public EditFrame(IMainFrame app) {
         this.app = app;
-        driverRepository = new DriverRepository();
         initialize(new DamageReport());
     }
 
@@ -81,15 +95,15 @@ public class EditFrame extends JPanel {
         driverInfoPanel.setLayout(new BoxLayout(driverInfoPanel, BoxLayout.Y_AXIS));
 
         JPanel title = new JPanel(new BorderLayout());
-        title.add(new JLabel("О водителе"), BorderLayout.WEST);
+        title.add(new JLabel("пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ"), BorderLayout.WEST);
 
         driverInfoPanel.add(title);
         driverInfoPanel.add(new JSeparator());
-        driverInfoPanel.add("Surname", createComponent("Фамилия", report.getDriverInfo().getLastName(), lastNameTextField));
-        driverInfoPanel.add("Name", createComponent("Имя", report.getDriverInfo().getName(), nameTextField));
-        driverInfoPanel.add(createComponent("Адрес", report.getDriverInfo().getAddress(), addressTextField));
-        driverInfoPanel.add(createComponent("Телефон", report.getDriverInfo().getPhone(), phoneTextField));
-        driverInfoPanel.add(createComponent("ID Паспорта", report.getDriverInfo().getPassId(), passIdTextField));
+        driverInfoPanel.add("Surname", createComponent("пїЅпїЅпїЅпїЅпїЅпїЅпїЅ", report.getDriverInfo().getLastName(), lastNameTextField));
+        driverInfoPanel.add("Name", createComponent("пїЅпїЅпїЅ", report.getDriverInfo().getName(), nameTextField));
+        driverInfoPanel.add(createComponent("пїЅпїЅпїЅпїЅпїЅ", report.getDriverInfo().getAddress(), addressTextField));
+        driverInfoPanel.add(createComponent("пїЅпїЅпїЅпїЅпїЅпїЅпїЅ", report.getDriverInfo().getPhone(), phoneTextField));
+        driverInfoPanel.add(createComponent("ID пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ", report.getDriverInfo().getPassId(), passIdTextField));
         driverInfoPanel.setVisible(true);
         add(driverInfoPanel);
     }
@@ -100,7 +114,7 @@ public class EditFrame extends JPanel {
         panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
 
         JPanel title = new JPanel(new BorderLayout());
-        title.add(new JLabel("О т/с"), BorderLayout.WEST);
+        title.add(new JLabel("пїЅ пїЅ/пїЅ"), BorderLayout.WEST);
 
         JPanel type = new JPanel(new BorderLayout());
         vehicleTypeComboBox = new JComboBox<>(VehicleType.values());
@@ -109,10 +123,10 @@ public class EditFrame extends JPanel {
 
         panel.add(title);
         panel.add(new JSeparator());
-        panel.add(createComponent("Модель", report.getVehicleInfo().getModel(), vehicleModelTextField));
+        panel.add(createComponent("пїЅпїЅпїЅпїЅпїЅпїЅ", report.getVehicleInfo().getModel(), vehicleModelTextField));
         panel.add(type);
-        panel.add(createComponent("Номер", report.getVehicleInfo().getNumber(), vehicleNumberTextField));
-        panel.add(createComponent("ID Кузова", report.getVehicleInfo().getBodyId(), vehicleBodyIdTextField));
+        panel.add(createComponent("пїЅпїЅпїЅпїЅпїЅ", report.getVehicleInfo().getNumber(), vehicleNumberTextField));
+        panel.add(createComponent("ID пїЅпїЅпїЅпїЅпїЅпїЅ", report.getVehicleInfo().getBodyId(), vehicleBodyIdTextField));
 
         panel.setVisible(true);
         add(panel);
@@ -127,7 +141,7 @@ public class EditFrame extends JPanel {
     }
 
     private void initDamageInfoTab() {
-        JLabel lblDamage = new JLabel("Повреждения:");
+        JLabel lblDamage = new JLabel("пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ:");
         lblDamage.setBounds(20, BASE_LINE, 100, BASE_HEIGHT);
         add(lblDamage);
 
@@ -169,23 +183,23 @@ public class EditFrame extends JPanel {
         if (damageInfo != null) wIcon.removeAll();
 
         int topPosition = 42;
-        wIcon.add(zoneLabel(155, topPosition, damageInfo != null && damageInfo.getDamage().getDamageZone()[9], zone10)); // zone 10
-        wIcon.add(zoneLabel(216, topPosition, damageInfo != null && damageInfo.getDamage().getDamageZone()[8], zone09)); // zone 9
-        wIcon.add(zoneLabel(275, topPosition, damageInfo != null && damageInfo.getDamage().getDamageZone()[7], zone08)); // zone 8
-        wIcon.add(zoneLabel(343, topPosition, damageInfo != null && damageInfo.getDamage().getDamageZone()[6], zone07)); // zone 7
+        wIcon.add(zoneLabel(155, topPosition, damageInfo != null && damageInfo.getDamageZone()[9], zone10)); // zone 10
+        wIcon.add(zoneLabel(216, topPosition, damageInfo != null && damageInfo.getDamageZone()[8], zone09)); // zone 9
+        wIcon.add(zoneLabel(275, topPosition, damageInfo != null && damageInfo.getDamageZone()[7], zone08)); // zone 8
+        wIcon.add(zoneLabel(343, topPosition, damageInfo != null && damageInfo.getDamageZone()[6], zone07)); // zone 7
 
         int midPosition = 164;
-        wIcon.add(zoneLabel(17, midPosition, damageInfo != null && damageInfo.getDamage().getDamageZone()[12], zone13)); // zone 13
-        wIcon.add(zoneLabel(128, midPosition, damageInfo != null && damageInfo.getDamage().getDamageZone()[11], zone12)); // zone 12
-        wIcon.add(zoneLabel(264, midPosition, damageInfo != null && damageInfo.getDamage().getDamageZone()[10], zone11)); // zone 11
-        wIcon.add(zoneLabel(357, midPosition, damageInfo != null && damageInfo.getDamage().getDamageZone()[5], zone06)); // zone 6
-        wIcon.add(zoneLabel(437, midPosition, damageInfo != null && damageInfo.getDamage().getDamageZone()[4], zone05)); // zone 5
+        wIcon.add(zoneLabel(17, midPosition, damageInfo != null && damageInfo.getDamageZone()[12], zone13)); // zone 13
+        wIcon.add(zoneLabel(128, midPosition, damageInfo != null && damageInfo.getDamageZone()[11], zone12)); // zone 12
+        wIcon.add(zoneLabel(264, midPosition, damageInfo != null && damageInfo.getDamageZone()[10], zone11)); // zone 11
+        wIcon.add(zoneLabel(357, midPosition, damageInfo != null && damageInfo.getDamageZone()[5], zone06)); // zone 6
+        wIcon.add(zoneLabel(437, midPosition, damageInfo != null && damageInfo.getDamageZone()[4], zone05)); // zone 5
 
         int botPosition = 288 ;
-        wIcon.add(zoneLabel(150, botPosition, damageInfo != null && damageInfo.getDamage().getDamageZone()[0], zone01)); // zone 1
-        wIcon.add(zoneLabel(216, botPosition, damageInfo != null && damageInfo.getDamage().getDamageZone()[1], zone02)); // zone 2
-        wIcon.add(zoneLabel(277, botPosition, damageInfo != null && damageInfo.getDamage().getDamageZone()[2], zone03)); // zone 3
-        wIcon.add(zoneLabel(344, botPosition, damageInfo != null && damageInfo.getDamage().getDamageZone()[3], zone04)); // zone 4
+        wIcon.add(zoneLabel(150, botPosition, damageInfo != null && damageInfo.getDamageZone()[0], zone01)); // zone 1
+        wIcon.add(zoneLabel(216, botPosition, damageInfo != null && damageInfo.getDamageZone()[1], zone02)); // zone 2
+        wIcon.add(zoneLabel(277, botPosition, damageInfo != null && damageInfo.getDamageZone()[2], zone03)); // zone 3
+        wIcon.add(zoneLabel(344, botPosition, damageInfo != null && damageInfo.getDamageZone()[3], zone04)); // zone 4
 
         wIcon.repaint();
     }
@@ -208,16 +222,16 @@ public class EditFrame extends JPanel {
         JPanel bottomPanel = new JPanel(new FlowLayout());
         bottomPanel.setBounds(455, 520, 400, 40);
 
-        JButton saveButton = new JButton("Сохранить");
+        JButton saveButton = new JButton("пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ");
         saveButton.addActionListener(saveDamageReport());
 
-        JButton cancelButton = new JButton("Отмена");
+        JButton cancelButton = new JButton("пїЅпїЅпїЅпїЅпїЅпїЅ");
         cancelButton.addActionListener(e -> {
             EditFrame.this.updateUI();
             app.search();
         });
 
-        JButton clearButton = new JButton("Очистить");
+        JButton clearButton = new JButton("пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ");
         clearButton.addActionListener(e -> {
             EditFrame.this.updateUI();
             app.edit();
@@ -233,7 +247,7 @@ public class EditFrame extends JPanel {
         DriverInfo driverInfo = new DriverInfo();
         if (empty(nameTextField, lastNameTextField, addressTextField, phoneTextField, passIdTextField,
             vehicleBodyIdTextField, vehicleNumberTextField, vehicleModelTextField)) {
-            JOptionPane.showMessageDialog(this, "Заполните все поля", "Ошибка", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(this, "пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅ", "пїЅпїЅпїЅпїЅпїЅпїЅ", JOptionPane.ERROR_MESSAGE);
             return null;
         }
         driverInfo.setId(report == null ? 0 : report.getDriverInfo().getId());
@@ -251,9 +265,9 @@ public class EditFrame extends JPanel {
         vehicleInfo.setNumber(vehicleNumberTextField.getText());
         vehicleInfo.setBodyId(vehicleBodyIdTextField.getText());
 
-        DamageInfo damageInfo = new DamageInfo();
+        DamageInfo damageInfo = new DamageInfo(new boolean[13]);
         damageInfo.setId(report == null ? 0 : report.getDamageInfo().getId());
-        damageInfo.setDamage(new Damage(new boolean[]{
+        damageInfo.setDamageZone(new boolean[]{
             ((SelectionPoint) zone01.getIcon()).selected(),
             ((SelectionPoint) zone02.getIcon()).selected(),
             ((SelectionPoint) zone03.getIcon()).selected(),
@@ -267,7 +281,7 @@ public class EditFrame extends JPanel {
             ((SelectionPoint) zone11.getIcon()).selected(),
             ((SelectionPoint) zone12.getIcon()).selected(),
             ((SelectionPoint) zone13.getIcon()).selected(),
-        }));
+        });
 
 
         if (driverInfo == null || vehicleInfo == null) {
@@ -287,16 +301,10 @@ public class EditFrame extends JPanel {
             DamageReport damageReport = buildDamageReport();
             if (Objects.nonNull(damageReport)) {
                 if (damageReport.getDriverInfo().getId() == 0) {
-                    int driverId = driverRepository.insertDriverInfo(damageReport.getDriverInfo());
-                    int vehicleId = driverRepository.insertVehicleInfo(driverId, damageReport.getVehicleInfo());
-                    driverRepository.insertDamageInfo(vehicleId, damageReport.getDamageInfo());
+                    damageReportService.insert(damageReport);
                 } else {
-                    driverRepository.updateDriverInfo(damageReport.getDriverInfo());
-                    driverRepository.updateVehicleInfo(damageReport.getVehicleInfo());
-                    driverRepository.updateDamageInfo(damageReport.getVehicleInfo().getId(), damageReport.getDamageInfo());
-
+                    damageReportService.update(damageReport);
                 }
-
                 app.search();
             }
         };

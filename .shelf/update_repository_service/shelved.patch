@@ -1,0 +1,1768 @@
+Index: src/main/java/com/dww/insurance/domain/Damage.java
+===================================================================
+--- src/main/java/com/dww/insurance/domain/Damage.java	(revision 20d40219615f6aa3583024938064f71ebc1bf38c)
++++ src/main/java/com/dww/insurance/domain/Damage.java	(revision 20d40219615f6aa3583024938064f71ebc1bf38c)
+@@ -1,19 +0,0 @@
+-package com.dww.insurance.domain;
+-
+-
+-public class Damage {
+-
+-    private boolean[] damageZone;
+-
+-    public Damage(boolean[] damageZone) {
+-        this.damageZone = damageZone;
+-    }
+-
+-    public boolean[] getDamageZone() {
+-        return damageZone;
+-    }
+-
+-    public void setDamageZone(boolean[] damageZone) {
+-        this.damageZone = damageZone;
+-    }
+-}
+Index: src/main/java/com/dww/insurance/frame/IApplication.java
+===================================================================
+--- src/main/java/com/dww/insurance/frame/IApplication.java	(revision 20d40219615f6aa3583024938064f71ebc1bf38c)
++++ src/main/java/com/dww/insurance/frame/IMainFrame.java	(date 1565457956792)
+@@ -2,7 +2,7 @@
+ 
+ import com.dww.insurance.domain.DamageReport;
+ 
+-public interface IApplication {
++public interface IMainFrame {
+     void search();
+     void edit();
+     void edit(DamageReport report);
+Index: src/main/java/com/dww/insurance/repository/ConnectionPool.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- src/main/java/com/dww/insurance/repository/ConnectionPool.java	(date 1565458336038)
++++ src/main/java/com/dww/insurance/repository/ConnectionPool.java	(date 1565458336038)
+@@ -0,0 +1,54 @@
++package com.dww.insurance.repository;
++
++import com.dww.insurance.service.AppProperties;
++
++import java.sql.Connection;
++import java.sql.DriverManager;
++import java.sql.SQLException;
++import java.util.ArrayList;
++import java.util.List;
++import java.util.Properties;
++
++public class ConnectionPool {
++
++    private static Properties props = AppProperties.getInstance().getAppProps();
++    private static int INITIAL_POOL_SIZE = 10;
++    private static ConnectionPool ourInstance = new ConnectionPool();
++    private List<Connection> connectionPool = new ArrayList<>(INITIAL_POOL_SIZE);
++    private List<Connection> usedConnections = new ArrayList<>();
++
++    private ConnectionPool() {
++        for (int i = 0; i < INITIAL_POOL_SIZE; i++) {
++            try {
++                connectionPool.add(createConnection());
++            } catch (SQLException e) {
++                e.printStackTrace();
++            }
++        }
++    }
++
++    private static Connection createConnection() throws SQLException {
++        return DriverManager.getConnection(
++            props.getProperty("url"), props.getProperty("user"), props.getProperty("password"));
++    }
++
++    public Connection getConnection() {
++        Connection connection = connectionPool.remove(connectionPool.size() - 1);
++        usedConnections.add(connection);
++        return connection;
++    }
++
++    public boolean releaseConnection(Connection connection) {
++        connectionPool.add(connection);
++        return usedConnections.remove(connection);
++    }
++
++    public int getSize() {
++        return connectionPool.size() + usedConnections.size();
++    }
++
++    public static ConnectionPool getInstance() {
++        return ourInstance;
++    }
++
++}
+Index: src/main/java/com/dww/insurance/service/VehicleInfoService.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- src/main/java/com/dww/insurance/service/VehicleInfoService.java	(date 1565457118798)
++++ src/main/java/com/dww/insurance/service/VehicleInfoService.java	(date 1565457118798)
+@@ -0,0 +1,25 @@
++package com.dww.insurance.service;
++
++import com.dww.insurance.domain.VehicleInfo;
++import com.dww.insurance.repository.VehicleInfoRepository;
++
++public class VehicleInfoService {
++
++    private VehicleInfoRepository vehicleInfoRepository;
++
++    public int insert(int ownerId, VehicleInfo vehicleInfo) {
++        return vehicleInfoRepository.insert(ownerId, vehicleInfo);
++    }
++
++    public void update(VehicleInfo vehicleInfo) {
++        vehicleInfoRepository.update(vehicleInfo);
++    }
++
++    public void delete(int vehicleId) {
++        vehicleInfoRepository.delete(vehicleId);
++    }
++
++    public void setVehicleInfoRepository(VehicleInfoRepository vehicleInfoRepository) {
++        this.vehicleInfoRepository = vehicleInfoRepository;
++    }
++}
+Index: src/main/java/com/dww/insurance/frame/EditFrame.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package com.dww.insurance.frame;\r\n\r\nimport com.dww.insurance.domain.Damage;\r\nimport com.dww.insurance.domain.DamageInfo;\r\nimport com.dww.insurance.domain.DamageReport;\r\nimport com.dww.insurance.domain.DriverInfo;\r\nimport com.dww.insurance.domain.VehicleInfo;\r\nimport com.dww.insurance.domain.VehicleType;\r\nimport com.dww.insurance.service.DriverRepository;\r\n\r\nimport javax.imageio.ImageIO;\r\nimport javax.swing.*;\r\nimport java.awt.*;\r\nimport java.awt.event.ActionListener;\r\nimport java.awt.event.MouseAdapter;\r\nimport java.awt.event.MouseEvent;\r\nimport java.awt.image.BufferedImage;\r\nimport java.io.IOException;\r\nimport java.util.Arrays;\r\nimport java.util.Objects;\r\n\r\n\r\npublic class EditFrame extends JPanel {\r\n\r\n    private static final int BASE_LINE = 180;\r\n    private static final int BASE_HEIGHT = 20;\r\n\r\n    private JTextField nameTextField = new JTextField(22);\r\n    private JTextField lastNameTextField = new JTextField(22);\r\n    private JTextField passIdTextField = new JTextField(22);\r\n    private JTextField addressTextField = new JTextField(22);\r\n    private JTextField phoneTextField = new JTextField(22);\r\n    private JTextField vehicleModelTextField = new JTextField(22);\r\n    private JTextField vehicleNumberTextField = new JTextField(22);\r\n    private JTextField vehicleBodyIdTextField = new JTextField(22);\r\n\r\n    private JLabel wIcon;\r\n\r\n    private JLabel zone01 = new JLabel();\r\n    private JLabel zone02 = new JLabel();\r\n    private JLabel zone03 = new JLabel();\r\n    private JLabel zone04 = new JLabel();\r\n    private JLabel zone05 = new JLabel();\r\n    private JLabel zone06 = new JLabel();\r\n    private JLabel zone07 = new JLabel();\r\n    private JLabel zone08 = new JLabel();\r\n    private JLabel zone09 = new JLabel();\r\n    private JLabel zone10 = new JLabel();\r\n    private JLabel zone11 = new JLabel();\r\n    private JLabel zone12 = new JLabel();\r\n    private JLabel zone13 = new JLabel();\r\n\r\n    private JComboBox<VehicleType> vehicleTypeComboBox;\r\n\r\n    private DriverRepository driverRepository;\r\n    private IApplication app;\r\n\r\n    private DamageReport report;\r\n\r\n    public EditFrame(IApplication app) {\r\n        this.app = app;\r\n        driverRepository = new DriverRepository();\r\n        initialize(new DamageReport());\r\n    }\r\n\r\n    public void initialize(DamageReport report) {\r\n        removeAll();\r\n        setLayout(null);\r\n        this.report = report;\r\n        initDriverInfoTab();\r\n        initVehicleInfoTab();\r\n        initDamageInfoTab();\r\n        initBottomPanel();\r\n\r\n        setVisible(true);\r\n    }\r\n\r\n    private void initDriverInfoTab() {\r\n        JPanel driverInfoPanel = new JPanel();\r\n        driverInfoPanel.setBounds(20, 5, 350, 150);\r\n        driverInfoPanel.setLayout(new BoxLayout(driverInfoPanel, BoxLayout.Y_AXIS));\r\n\r\n        JPanel title = new JPanel(new BorderLayout());\r\n        title.add(new JLabel(\"Driver Info\"), BorderLayout.WEST);\r\n\r\n        driverInfoPanel.add(title);\r\n        driverInfoPanel.add(new JSeparator());\r\n        driverInfoPanel.add(\"Surname\", createComponent(\"Surname\", report.getDriverInfo().getLastName(), lastNameTextField));\r\n        driverInfoPanel.add(\"Name\", createComponent(\"Name\", report.getDriverInfo().getName(), nameTextField));\r\n        driverInfoPanel.add(createComponent(\"Address\", report.getDriverInfo().getAddress(), addressTextField));\r\n        driverInfoPanel.add(createComponent(\"Phone\", report.getDriverInfo().getPhone(), phoneTextField));\r\n        driverInfoPanel.add(createComponent(\"Pass ID\", report.getDriverInfo().getPassId(), passIdTextField));\r\n        driverInfoPanel.setVisible(true);\r\n        add(driverInfoPanel);\r\n    }\r\n\r\n    private void initVehicleInfoTab() {\r\n        JPanel panel = new JPanel();\r\n        panel.setBounds(400, 8, 350, 125);\r\n        panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));\r\n\r\n        JPanel title = new JPanel(new BorderLayout());\r\n        title.add(new JLabel(\"Vehicle Info\"), BorderLayout.WEST);\r\n\r\n        JPanel type = new JPanel(new BorderLayout());\r\n        vehicleTypeComboBox = new JComboBox<>(VehicleType.values());\r\n        vehicleTypeComboBox.setSelectedItem(report.getVehicleInfo().getType());\r\n        type.add(vehicleTypeComboBox);\r\n\r\n        panel.add(title);\r\n        panel.add(new JSeparator());\r\n        panel.add(createComponent(\"Model\", report.getVehicleInfo().getModel(), vehicleModelTextField));\r\n        panel.add(type);\r\n        panel.add(createComponent(\"Number\", report.getVehicleInfo().getNumber(), vehicleNumberTextField));\r\n        panel.add(createComponent(\"Body ID\", report.getVehicleInfo().getBodyId(), vehicleBodyIdTextField));\r\n\r\n        panel.setVisible(true);\r\n        add(panel);\r\n    }\r\n\r\n    private JPanel createComponent(String label, String value, JTextField textField) {\r\n        JPanel panel = new JPanel(new BorderLayout());\r\n        panel.add(new JLabel(label), BorderLayout.WEST);\r\n        textField.setText(value);\r\n        panel.add(textField, BorderLayout.EAST);\r\n        return panel;\r\n    }\r\n\r\n    private void initDamageInfoTab() {\r\n        JLabel lblDamage = new JLabel(\"Damage Info:\");\r\n        lblDamage.setBounds(20, BASE_LINE, 100, BASE_HEIGHT);\r\n        add(lblDamage);\r\n\r\n        JSeparator separator_3 = new JSeparator();\r\n        separator_3.setBounds(20, BASE_LINE + 20, 530, 2);\r\n        add(separator_3);\r\n\r\n        BufferedImage wPic;\r\n        try {\r\n            wPic = ImageIO.read(getClass().getClassLoader().getResource(\"AutoShema.jpg\"));\r\n\r\n            ImageIcon imageIcon = new ImageIcon(wPic); // load the image to a imageIcon\r\n            Image image = imageIcon.getImage(); // transform it\r\n            Image newimg = image.getScaledInstance(500, 350, Image.SCALE_SMOOTH); // scale it the smooth way\r\n            imageIcon = new ImageIcon(newimg);\r\n\r\n            wIcon = new JLabel(imageIcon);\r\n            wIcon.setLayout(null);\r\n            wIcon.setBounds(20, BASE_LINE + 30, 500, 350);\r\n\r\n            // TODO fix position\r\n            add(wIcon);\r\n        } catch (IOException e) {\r\n            e.printStackTrace();\r\n        }\r\n\r\n        Label label1 = new Label() {\r\n            public void paint(Graphics g) {\r\n                super.paint(g);\r\n                g.setColor(Color.red);\r\n                g.drawOval(400, 400, 100, 100);\r\n            }\r\n        };\r\n        damageZone(report.getDamageInfo());\r\n        add(label1);\r\n    }\r\n\r\n    private void damageZone(DamageInfo damageInfo) {\r\n        if (damageInfo != null) wIcon.removeAll();\r\n\r\n        int topPosition = 42;\r\n        wIcon.add(zoneLabel(155, topPosition, damageInfo != null && damageInfo.getDamage().getDamageZone()[9], zone10)); // zone 10\r\n        wIcon.add(zoneLabel(216, topPosition, damageInfo != null && damageInfo.getDamage().getDamageZone()[8], zone09)); // zone 9\r\n        wIcon.add(zoneLabel(275, topPosition, damageInfo != null && damageInfo.getDamage().getDamageZone()[7], zone08)); // zone 8\r\n        wIcon.add(zoneLabel(343, topPosition, damageInfo != null && damageInfo.getDamage().getDamageZone()[6], zone07)); // zone 7\r\n\r\n        int midPosition = 164;\r\n        wIcon.add(zoneLabel(17, midPosition, damageInfo != null && damageInfo.getDamage().getDamageZone()[12], zone13)); // zone 13\r\n        wIcon.add(zoneLabel(128, midPosition, damageInfo != null && damageInfo.getDamage().getDamageZone()[11], zone12)); // zone 12\r\n        wIcon.add(zoneLabel(264, midPosition, damageInfo != null && damageInfo.getDamage().getDamageZone()[10], zone11)); // zone 11\r\n        wIcon.add(zoneLabel(357, midPosition, damageInfo != null && damageInfo.getDamage().getDamageZone()[5], zone06)); // zone 6\r\n        wIcon.add(zoneLabel(437, midPosition, damageInfo != null && damageInfo.getDamage().getDamageZone()[4], zone05)); // zone 5\r\n\r\n        int botPosition = 288 ;\r\n        wIcon.add(zoneLabel(150, botPosition, damageInfo != null && damageInfo.getDamage().getDamageZone()[0], zone01)); // zone 1\r\n        wIcon.add(zoneLabel(216, botPosition, damageInfo != null && damageInfo.getDamage().getDamageZone()[1], zone02)); // zone 2\r\n        wIcon.add(zoneLabel(277, botPosition, damageInfo != null && damageInfo.getDamage().getDamageZone()[2], zone03)); // zone 3\r\n        wIcon.add(zoneLabel(344, botPosition, damageInfo != null && damageInfo.getDamage().getDamageZone()[3], zone04)); // zone 4\r\n\r\n        wIcon.repaint();\r\n    }\r\n\r\n    private JLabel zoneLabel(int x, int y, boolean enabled, JLabel label) {\r\n        SelectionPoint selectionPoint = new SelectionPoint(enabled);\r\n        label.setIcon(selectionPoint);\r\n        label.addMouseListener(new MouseAdapter() {\r\n            @Override\r\n            public void mouseClicked(MouseEvent e) {\r\n                selectionPoint.switchColor();\r\n                label.repaint();\r\n            }\r\n        });\r\n        label.setBounds(x, y, 25, 25);\r\n        return label;\r\n    }\r\n\r\n    private void initBottomPanel() {\r\n        JPanel bottomPanel = new JPanel(new FlowLayout());\r\n        bottomPanel.setBounds(450, 520, 400, 40);\r\n\r\n        JButton saveButton = new JButton(\"Save\");\r\n        saveButton.addActionListener(saveDamageReport());\r\n\r\n        JButton cancelButton = new JButton(\"Cancel\");\r\n        cancelButton.addActionListener(e -> {\r\n            EditFrame.this.updateUI();\r\n            app.search();\r\n        });\r\n\r\n        JButton clearButton = new JButton(\"Clear\");\r\n        clearButton.addActionListener(e -> {\r\n            EditFrame.this.updateUI();\r\n            app.edit();\r\n        });\r\n\r\n        bottomPanel.add(saveButton);\r\n        bottomPanel.add(cancelButton);\r\n        bottomPanel.add(clearButton);\r\n        add(bottomPanel);\r\n    }\r\n\r\n    private DamageReport buildDamageReport() {\r\n        DriverInfo driverInfo = new DriverInfo();\r\n        if (empty(nameTextField, lastNameTextField, addressTextField, phoneTextField, passIdTextField,\r\n            vehicleBodyIdTextField, vehicleNumberTextField, vehicleModelTextField)) {\r\n            JOptionPane.showMessageDialog(this, \"Please fill all fields\", \"Error\", JOptionPane.ERROR_MESSAGE);\r\n            return null;\r\n        }\r\n        driverInfo.setId(report == null ? 0 : report.getDriverInfo().getId());\r\n        driverInfo.setName(nameTextField.getText());\r\n        driverInfo.setLastName(lastNameTextField.getText());\r\n        driverInfo.setAddress(addressTextField.getText());\r\n        driverInfo.setPhone(phoneTextField.getText());\r\n        driverInfo.setPassId(passIdTextField.getText());\r\n\r\n        VehicleInfo vehicleInfo = new VehicleInfo();\r\n        vehicleInfo.setOwner_id(report == null ? 0 : report.getDriverInfo().getId());\r\n        vehicleInfo.setId(report == null ? 0 : report.getVehicleInfo().getId());\r\n        vehicleInfo.setModel(vehicleModelTextField.getText());\r\n        vehicleInfo.setType(VehicleType.valueOf(vehicleTypeComboBox.getSelectedItem().toString()));\r\n        vehicleInfo.setNumber(vehicleNumberTextField.getText());\r\n        vehicleInfo.setBodyId(vehicleBodyIdTextField.getText());\r\n\r\n        DamageInfo damageInfo = new DamageInfo();\r\n        damageInfo.setId(report == null ? 0 : report.getDamageInfo().getId());\r\n        damageInfo.setDamage(new Damage(new boolean[]{\r\n            ((SelectionPoint) zone01.getIcon()).selected(),\r\n            ((SelectionPoint) zone02.getIcon()).selected(),\r\n            ((SelectionPoint) zone03.getIcon()).selected(),\r\n            ((SelectionPoint) zone04.getIcon()).selected(),\r\n            ((SelectionPoint) zone05.getIcon()).selected(),\r\n            ((SelectionPoint) zone06.getIcon()).selected(),\r\n            ((SelectionPoint) zone07.getIcon()).selected(),\r\n            ((SelectionPoint) zone08.getIcon()).selected(),\r\n            ((SelectionPoint) zone09.getIcon()).selected(),\r\n            ((SelectionPoint) zone10.getIcon()).selected(),\r\n            ((SelectionPoint) zone11.getIcon()).selected(),\r\n            ((SelectionPoint) zone12.getIcon()).selected(),\r\n            ((SelectionPoint) zone13.getIcon()).selected(),\r\n        }));\r\n\r\n\r\n        if (driverInfo == null || vehicleInfo == null) {\r\n            return null;\r\n        } else {\r\n            return new DamageReport(driverInfo, vehicleInfo, damageInfo);\r\n        }\r\n\r\n    }\r\n\r\n    private boolean empty(JTextField... textFields) {\r\n        return Arrays.stream(textFields).map(JTextField::getText).anyMatch(String::isEmpty);\r\n    }\r\n\r\n    private ActionListener saveDamageReport() {\r\n        return event -> {\r\n            DamageReport damageReport = buildDamageReport();\r\n            if (Objects.nonNull(damageReport)) {\r\n                if (damageReport.getDriverInfo().getId() == 0) {\r\n                    int driverId = driverRepository.insertDriverInfo(damageReport.getDriverInfo());\r\n                    int vehicleId = driverRepository.insertVehicleInfo(driverId, damageReport.getVehicleInfo());\r\n                    driverRepository.insertDamageInfo(vehicleId, damageReport.getDamageInfo());\r\n                } else {\r\n                    driverRepository.updateDriverInfo(damageReport.getDriverInfo());\r\n                    driverRepository.updateVehicleInfo(damageReport.getVehicleInfo());\r\n                    driverRepository.updateDamageInfo(damageReport.getVehicleInfo().getId(), damageReport.getDamageInfo());\r\n\r\n                }\r\n\r\n                app.search();\r\n            }\r\n        };\r\n    }\r\n\r\n}\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- src/main/java/com/dww/insurance/frame/EditFrame.java	(revision 20d40219615f6aa3583024938064f71ebc1bf38c)
++++ src/main/java/com/dww/insurance/frame/EditFrame.java	(date 1565457956851)
+@@ -1,16 +1,19 @@
+ package com.dww.insurance.frame;
+ 
+-import com.dww.insurance.domain.Damage;
+ import com.dww.insurance.domain.DamageInfo;
+ import com.dww.insurance.domain.DamageReport;
+ import com.dww.insurance.domain.DriverInfo;
+ import com.dww.insurance.domain.VehicleInfo;
+ import com.dww.insurance.domain.VehicleType;
+-import com.dww.insurance.service.DriverRepository;
++import com.dww.insurance.service.DamageReportService;
++import com.dww.insurance.service.ServiceLocator;
+ 
+-import javax.imageio.ImageIO;
+-import javax.swing.*;
+-import java.awt.*;
++import java.awt.BorderLayout;
++import java.awt.Color;
++import java.awt.FlowLayout;
++import java.awt.Graphics;
++import java.awt.Image;
++import java.awt.Label;
+ import java.awt.event.ActionListener;
+ import java.awt.event.MouseAdapter;
+ import java.awt.event.MouseEvent;
+@@ -19,6 +22,17 @@
+ import java.util.Arrays;
+ import java.util.Objects;
+ 
++import javax.imageio.ImageIO;
++import javax.swing.BoxLayout;
++import javax.swing.ImageIcon;
++import javax.swing.JButton;
++import javax.swing.JComboBox;
++import javax.swing.JLabel;
++import javax.swing.JOptionPane;
++import javax.swing.JPanel;
++import javax.swing.JSeparator;
++import javax.swing.JTextField;
++
+ 
+ public class EditFrame extends JPanel {
+ 
+@@ -52,14 +66,14 @@
+ 
+     private JComboBox<VehicleType> vehicleTypeComboBox;
+ 
+-    private DriverRepository driverRepository;
+-    private IApplication app;
++    private DamageReportService damageReportService = ServiceLocator.getService(DamageReportService.class);
++
++    private IMainFrame app;
+ 
+     private DamageReport report;
+ 
+-    public EditFrame(IApplication app) {
++    public EditFrame(IMainFrame app) {
+         this.app = app;
+-        driverRepository = new DriverRepository();
+         initialize(new DamageReport());
+     }
+ 
+@@ -169,23 +183,23 @@
+         if (damageInfo != null) wIcon.removeAll();
+ 
+         int topPosition = 42;
+-        wIcon.add(zoneLabel(155, topPosition, damageInfo != null && damageInfo.getDamage().getDamageZone()[9], zone10)); // zone 10
+-        wIcon.add(zoneLabel(216, topPosition, damageInfo != null && damageInfo.getDamage().getDamageZone()[8], zone09)); // zone 9
+-        wIcon.add(zoneLabel(275, topPosition, damageInfo != null && damageInfo.getDamage().getDamageZone()[7], zone08)); // zone 8
+-        wIcon.add(zoneLabel(343, topPosition, damageInfo != null && damageInfo.getDamage().getDamageZone()[6], zone07)); // zone 7
++        wIcon.add(zoneLabel(155, topPosition, damageInfo != null && damageInfo.getDamageZone()[9], zone10)); // zone 10
++        wIcon.add(zoneLabel(216, topPosition, damageInfo != null && damageInfo.getDamageZone()[8], zone09)); // zone 9
++        wIcon.add(zoneLabel(275, topPosition, damageInfo != null && damageInfo.getDamageZone()[7], zone08)); // zone 8
++        wIcon.add(zoneLabel(343, topPosition, damageInfo != null && damageInfo.getDamageZone()[6], zone07)); // zone 7
+ 
+         int midPosition = 164;
+-        wIcon.add(zoneLabel(17, midPosition, damageInfo != null && damageInfo.getDamage().getDamageZone()[12], zone13)); // zone 13
+-        wIcon.add(zoneLabel(128, midPosition, damageInfo != null && damageInfo.getDamage().getDamageZone()[11], zone12)); // zone 12
+-        wIcon.add(zoneLabel(264, midPosition, damageInfo != null && damageInfo.getDamage().getDamageZone()[10], zone11)); // zone 11
+-        wIcon.add(zoneLabel(357, midPosition, damageInfo != null && damageInfo.getDamage().getDamageZone()[5], zone06)); // zone 6
+-        wIcon.add(zoneLabel(437, midPosition, damageInfo != null && damageInfo.getDamage().getDamageZone()[4], zone05)); // zone 5
++        wIcon.add(zoneLabel(17, midPosition, damageInfo != null && damageInfo.getDamageZone()[12], zone13)); // zone 13
++        wIcon.add(zoneLabel(128, midPosition, damageInfo != null && damageInfo.getDamageZone()[11], zone12)); // zone 12
++        wIcon.add(zoneLabel(264, midPosition, damageInfo != null && damageInfo.getDamageZone()[10], zone11)); // zone 11
++        wIcon.add(zoneLabel(357, midPosition, damageInfo != null && damageInfo.getDamageZone()[5], zone06)); // zone 6
++        wIcon.add(zoneLabel(437, midPosition, damageInfo != null && damageInfo.getDamageZone()[4], zone05)); // zone 5
+ 
+         int botPosition = 288 ;
+-        wIcon.add(zoneLabel(150, botPosition, damageInfo != null && damageInfo.getDamage().getDamageZone()[0], zone01)); // zone 1
+-        wIcon.add(zoneLabel(216, botPosition, damageInfo != null && damageInfo.getDamage().getDamageZone()[1], zone02)); // zone 2
+-        wIcon.add(zoneLabel(277, botPosition, damageInfo != null && damageInfo.getDamage().getDamageZone()[2], zone03)); // zone 3
+-        wIcon.add(zoneLabel(344, botPosition, damageInfo != null && damageInfo.getDamage().getDamageZone()[3], zone04)); // zone 4
++        wIcon.add(zoneLabel(150, botPosition, damageInfo != null && damageInfo.getDamageZone()[0], zone01)); // zone 1
++        wIcon.add(zoneLabel(216, botPosition, damageInfo != null && damageInfo.getDamageZone()[1], zone02)); // zone 2
++        wIcon.add(zoneLabel(277, botPosition, damageInfo != null && damageInfo.getDamageZone()[2], zone03)); // zone 3
++        wIcon.add(zoneLabel(344, botPosition, damageInfo != null && damageInfo.getDamageZone()[3], zone04)); // zone 4
+ 
+         wIcon.repaint();
+     }
+@@ -251,9 +265,9 @@
+         vehicleInfo.setNumber(vehicleNumberTextField.getText());
+         vehicleInfo.setBodyId(vehicleBodyIdTextField.getText());
+ 
+-        DamageInfo damageInfo = new DamageInfo();
++        DamageInfo damageInfo = new DamageInfo(new boolean[13]);
+         damageInfo.setId(report == null ? 0 : report.getDamageInfo().getId());
+-        damageInfo.setDamage(new Damage(new boolean[]{
++        damageInfo.setDamageZone(new boolean[]{
+             ((SelectionPoint) zone01.getIcon()).selected(),
+             ((SelectionPoint) zone02.getIcon()).selected(),
+             ((SelectionPoint) zone03.getIcon()).selected(),
+@@ -267,7 +281,7 @@
+             ((SelectionPoint) zone11.getIcon()).selected(),
+             ((SelectionPoint) zone12.getIcon()).selected(),
+             ((SelectionPoint) zone13.getIcon()).selected(),
+-        }));
++        });
+ 
+ 
+         if (driverInfo == null || vehicleInfo == null) {
+@@ -287,16 +301,10 @@
+             DamageReport damageReport = buildDamageReport();
+             if (Objects.nonNull(damageReport)) {
+                 if (damageReport.getDriverInfo().getId() == 0) {
+-                    int driverId = driverRepository.insertDriverInfo(damageReport.getDriverInfo());
+-                    int vehicleId = driverRepository.insertVehicleInfo(driverId, damageReport.getVehicleInfo());
+-                    driverRepository.insertDamageInfo(vehicleId, damageReport.getDamageInfo());
++                    damageReportService.insert(damageReport);
+                 } else {
+-                    driverRepository.updateDriverInfo(damageReport.getDriverInfo());
+-                    driverRepository.updateVehicleInfo(damageReport.getVehicleInfo());
+-                    driverRepository.updateDamageInfo(damageReport.getVehicleInfo().getId(), damageReport.getDamageInfo());
+-
++                    damageReportService.update(damageReport);
+                 }
+-
+                 app.search();
+             }
+         };
+Index: src/main/java/com/dww/insurance/repository/DriverInfoRepository.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- src/main/java/com/dww/insurance/repository/DriverInfoRepository.java	(date 1565457118642)
++++ src/main/java/com/dww/insurance/repository/DriverInfoRepository.java	(date 1565457118642)
+@@ -0,0 +1,80 @@
++package com.dww.insurance.repository;
++
++import com.dww.insurance.domain.DriverInfo;
++
++import java.sql.Connection;
++import java.sql.PreparedStatement;
++import java.sql.ResultSet;
++import java.sql.SQLException;
++import java.sql.Statement;
++
++public class DriverInfoRepository {
++
++    private static final String INSERT_STATEMENT =
++        "insert into owner (name, pass_id, last_name, address, phone) VALUES (?,?,?,?,?)";
++    private static final String UPDATE_STATEMENT =
++        "update owner SET name = ?, pass_id = ?, last_name = ?, address = ?, phone = ? WHERE id = ?";
++    private static final String DELETE_STATEMENT = "DELETE FROM owner WHERE id = ?";
++
++    public int insert(DriverInfo driverInfo) {
++        Connection conn = null;
++        PreparedStatement stmt;
++        try {
++            conn = ConnectionPool.getInstance().getConnection();
++            stmt = conn.prepareStatement(INSERT_STATEMENT, Statement.RETURN_GENERATED_KEYS);
++            stmt.setString(1, driverInfo.getName());
++            stmt.setString(2, driverInfo.getPassId());
++            stmt.setString(3, driverInfo.getLastName());
++            stmt.setString(4, driverInfo.getAddress());
++            stmt.setString(5, driverInfo.getPhone());
++            stmt.executeUpdate();
++            ResultSet rs = stmt.getGeneratedKeys();
++            rs.next();
++            return rs.getInt(1);
++
++        } catch (SQLException ex) {
++            ex.printStackTrace();
++            throw new RuntimeException(ex);
++        } finally {
++            ConnectionPool.getInstance().releaseConnection(conn);
++        }
++    }
++
++    public void update(DriverInfo driverInfo) {
++        Connection conn = null;
++        PreparedStatement stmt;
++        try {
++            conn = ConnectionPool.getInstance().getConnection();
++            stmt = conn.prepareStatement(UPDATE_STATEMENT);
++            stmt.setString(1, driverInfo.getName());
++            stmt.setString(2, driverInfo.getPassId());
++            stmt.setString(3, driverInfo.getLastName());
++            stmt.setString(4, driverInfo.getAddress());
++            stmt.setString(5, driverInfo.getPhone());
++            stmt.setInt(6, driverInfo.getId());
++            stmt.executeUpdate();
++        } catch (SQLException ex) {
++            ex.printStackTrace();
++            throw new RuntimeException(ex);
++        } finally {
++            ConnectionPool.getInstance().releaseConnection(conn);
++        }
++    }
++
++    public void delete(int driverInfoId) {
++        Connection conn = null;
++        PreparedStatement stmt;
++        try {
++            conn = ConnectionPool.getInstance().getConnection();
++            stmt = conn.prepareStatement(DELETE_STATEMENT);
++            stmt.setInt(1, driverInfoId);
++            stmt.executeUpdate();
++        } catch (SQLException ex) {
++            ex.printStackTrace();
++            throw new RuntimeException(ex);
++        } finally {
++            ConnectionPool.getInstance().releaseConnection(conn);
++        }
++    }
++
++}
+Index: src/main/java/com/dww/insurance/frame/MainApp.java
+===================================================================
+--- src/main/java/com/dww/insurance/frame/MainApp.java	(revision 20d40219615f6aa3583024938064f71ebc1bf38c)
++++ src/main/java/com/dww/insurance/frame/MainFrame.java	(date 1565457956778)
+@@ -6,9 +6,9 @@
+ import java.awt.*;
+ import java.awt.event.WindowAdapter;
+ import java.awt.event.WindowEvent;
+-import java.awt.event.WindowListener;
+ 
+-public class MainApp extends JFrame implements IApplication {
++public class MainFrame extends JFrame implements IMainFrame {
++
+     CardLayout cardLayout;
+     JPanel cardPanel;
+     String name;
+@@ -17,8 +17,7 @@
+     EditFrame editFrame;
+     AdminPanelFrame adminPanelFrame;
+ 
+-
+-    public MainApp(String uname) {
++    public MainFrame(String uname) {
+         this.name = uname;
+         initialize();
+         start();
+Index: src/main/java/com/dww/insurance/service/DriverInfoService.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- src/main/java/com/dww/insurance/service/DriverInfoService.java	(date 1565454450045)
++++ src/main/java/com/dww/insurance/service/DriverInfoService.java	(date 1565454450045)
+@@ -0,0 +1,25 @@
++package com.dww.insurance.service;
++
++import com.dww.insurance.domain.DriverInfo;
++import com.dww.insurance.repository.DriverInfoRepository;
++
++public class DriverInfoService {
++
++    private DriverInfoRepository driverInfoRepository;
++
++    public int insert(DriverInfo driverInfo) {
++        return driverInfoRepository.insert(driverInfo);
++    }
++
++    public void update(DriverInfo driverInfo) {
++        driverInfoRepository.update(driverInfo);
++    }
++
++    public void delete(int id) {
++        driverInfoRepository.delete(id);
++    }
++
++    public void setDriverInfoRepository(DriverInfoRepository driverInfoRepository) {
++        this.driverInfoRepository = driverInfoRepository;
++    }
++}
+Index: src/main/java/com/dww/insurance/service/DamageInfoService.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- src/main/java/com/dww/insurance/service/DamageInfoService.java	(date 1565457118675)
++++ src/main/java/com/dww/insurance/service/DamageInfoService.java	(date 1565457118675)
+@@ -0,0 +1,25 @@
++package com.dww.insurance.service;
++
++import com.dww.insurance.domain.DamageInfo;
++import com.dww.insurance.repository.DamageInfoRepository;
++
++public class DamageInfoService {
++
++    private DamageInfoRepository damageInfoRepository;
++
++    public void insert(int vehicleId, DamageInfo damageInfo) {
++        damageInfoRepository.insert(vehicleId, damageInfo);
++    }
++
++    public void update(int vehicleId, DamageInfo damageInfo) {
++        damageInfoRepository.update(vehicleId, damageInfo);
++    }
++
++    public void delete(int vehicleId) {
++        damageInfoRepository.delete(vehicleId);
++    }
++
++    public void setDamageInfoRepository(DamageInfoRepository damageInfoRepository) {
++        this.damageInfoRepository = damageInfoRepository;
++    }
++}
+Index: src/main/java/com/dww/insurance/frame/SearchFrame.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package com.dww.insurance.frame;\r\n\r\nimport com.dww.insurance.domain.DamageInfo;\r\nimport com.dww.insurance.domain.DamageReport;\r\nimport com.dww.insurance.domain.QueryParam;\r\nimport com.dww.insurance.domain.SearchResult;\r\nimport com.dww.insurance.model.SearchResultTableModel;\r\nimport com.dww.insurance.service.DriverRepository;\r\nimport com.dww.insurance.service.SearchRepository;\r\n\r\nimport javax.imageio.ImageIO;\r\nimport javax.swing.*;\r\nimport java.awt.*;\r\nimport java.awt.event.MouseAdapter;\r\nimport java.awt.event.MouseEvent;\r\nimport java.awt.image.BufferedImage;\r\nimport java.io.IOException;\r\nimport java.util.ArrayList;\r\nimport java.util.List;\r\n\r\npublic class SearchFrame extends JPanel {\r\n\r\n    private static final int BASE_LINE = 180;\r\n    private static final int BASE_WIDTH = 240;\r\n    private static final int BASE_HEIGHT = 20;\r\n\r\n    private final DriverRepository driverRepository;\r\n    private final SearchRepository searchRepository;\r\n\r\n    private JTextField surnameTextField;\r\n    private JTextField ownerTextField;\r\n    private JTextField bodyTextField;\r\n    private DefaultListModel<SearchResult> listModel = new DefaultListModel<>();\r\n    private IApplication app;\r\n\r\n    private JLabel driverSurname;\r\n    private JLabel driverName;\r\n    private JLabel driverPassId;\r\n    private JLabel driverAddress;\r\n    private JLabel driverPhone;\r\n    private JLabel vehicleModel;\r\n    private JLabel vehicleType;\r\n    private JLabel vehicleNumber;\r\n    private JLabel vehicleBodyId;\r\n\r\n    private DamageReport report;\r\n    private JPanel bottomPanel;\r\n    private JLabel wIcon;\r\n\r\n    private JTable table;\r\n\r\n\r\n    public SearchFrame(IApplication app) {\r\n        this.app = app;\r\n        searchRepository = new SearchRepository();\r\n        driverRepository = new DriverRepository();\r\n        initialize();\r\n    }\r\n\r\n    public void initialize() {\r\n        removeAll();\r\n        setLayout(null);\r\n        initSearchResult();\r\n        initSearchTab();\r\n        initDriverInfoTab();\r\n        initVehicleTab();\r\n        initDamageInfoTab();\r\n        initBottomPanel();\r\n        populateDamageReport(null);\r\n        setVisible(true);\r\n    }\r\n\r\n    private void initBottomPanel() {\r\n        bottomPanel = new JPanel(new FlowLayout());\r\n        bottomPanel.setBounds(90, 520, 200, 40);\r\n        bottomPanel.setVisible(false);\r\n\r\n        JButton editBtn = new JButton(\"Edit\");\r\n        editBtn.addActionListener(event -> {\r\n            SearchFrame.this.updateUI();\r\n            app.edit(report);\r\n        });\r\n        JButton deleteButton = new JButton(\"Delete\");\r\n        deleteButton.setBackground(new Color(250, 128, 114));\r\n        deleteButton.addActionListener(event -> delete());\r\n\r\n        bottomPanel.add(editBtn);\r\n        bottomPanel.add(deleteButton);\r\n        add(bottomPanel);\r\n    }\r\n\r\n    private void initDamageInfoTab() {\r\n        JLabel lblDamage = new JLabel(\"Damage Info:\");\r\n        lblDamage.setBounds(260, BASE_LINE, 100, BASE_HEIGHT);\r\n        add(lblDamage);\r\n\r\n        JSeparator separator_3 = new JSeparator();\r\n        separator_3.setBounds(250, BASE_LINE + 20, 530, 2);\r\n        add(separator_3);\r\n\r\n        BufferedImage wPic;\r\n        try {\r\n            wPic = ImageIO.read(getClass().getClassLoader().getResource(\"AutoShema.jpg\"));\r\n\r\n            ImageIcon imageIcon = new ImageIcon(wPic); // load the image to a imageIcon\r\n            Image image = imageIcon.getImage(); // transform it\r\n            Image newimg = image.getScaledInstance(500, 350, Image.SCALE_SMOOTH); // scale it the smooth way\r\n            imageIcon = new ImageIcon(newimg);\r\n\r\n            wIcon = new JLabel(imageIcon);\r\n            wIcon.setLayout(null);\r\n            wIcon.setBounds(270, BASE_LINE + 30, 500, 350);\r\n\r\n            // TODO fix position\r\n            add(wIcon);\r\n        } catch (IOException e) {\r\n            e.printStackTrace();\r\n        }\r\n\r\n        Label label1 = new Label() {\r\n            public void paint(Graphics g) {\r\n                super.paint(g);\r\n                g.setColor(Color.red);\r\n                g.drawOval(400, 400, 100, 100);\r\n            }\r\n        };\r\n        add(label1);\r\n    }\r\n\r\n    private void initSearchResult() {\r\n        JSeparator searchResultSeparator = new JSeparator();\r\n        searchResultSeparator.setBounds(5, 50, 785, 2);\r\n        add(searchResultSeparator);\r\n\r\n        List<SearchResult> tableData = new ArrayList<>();\r\n        SearchResultTableModel tableModel = new SearchResultTableModel(tableData);\r\n        table = new JTable(tableModel);\r\n        table.setAutoCreateRowSorter(true);\r\n        table.addMouseListener(new MouseAdapter() {\r\n            @Override\r\n            public void mouseClicked(MouseEvent e) {\r\n                int personId = (int) table.getModel().getValueAt(table.convertRowIndexToModel(table.getSelectedRow()), 0);\r\n                searchDriverInfo(personId);\r\n            }\r\n        });\r\n        JScrollPane scrollPaneTable = new JScrollPane(table);\r\n        scrollPaneTable.setBounds(20, 60, 750, 116);\r\n        add(scrollPaneTable);\r\n    }\r\n\r\n    private void initDriverInfoTab() {\r\n        JLabel driverInfoLabel = new JLabel(\"Driver Info:\");\r\n        driverInfoLabel.setBounds(20, BASE_LINE, 240, BASE_HEIGHT);\r\n        add(driverInfoLabel);\r\n\r\n        JSeparator separator = new JSeparator();\r\n        separator.setBounds(18, BASE_LINE + 20, 240, 2);\r\n        add(separator);\r\n\r\n        driverSurname = new JLabel();\r\n        driverSurname.setBounds(20, BASE_LINE + 25, BASE_WIDTH, BASE_HEIGHT);\r\n        add(driverSurname);\r\n\r\n        driverName = new JLabel();\r\n        driverName.setBounds(20, BASE_LINE + 45, BASE_WIDTH, BASE_HEIGHT);\r\n        add(driverName);\r\n\r\n        driverAddress = new JLabel();\r\n        driverAddress.setBounds(20, BASE_LINE + 65, BASE_WIDTH, BASE_HEIGHT);\r\n        add(driverAddress);\r\n\r\n        driverPhone = new JLabel();\r\n        driverPhone.setBounds(20, BASE_LINE + 85, BASE_WIDTH, BASE_HEIGHT);\r\n        add(driverPhone);\r\n\r\n        driverPassId = new JLabel();\r\n        driverPassId.setBounds(20, BASE_LINE + 105, BASE_WIDTH, BASE_HEIGHT * 2);\r\n        add(driverPassId);\r\n    }\r\n\r\n    private void initVehicleTab() {\r\n        JLabel lblVehicleInfo = new JLabel(\"Vehicle Info:\");\r\n        lblVehicleInfo.setBounds(20, 340, BASE_WIDTH, 20);\r\n        add(lblVehicleInfo);\r\n\r\n        vehicleModel = new JLabel();\r\n        vehicleModel.setBounds(20, 360, BASE_WIDTH, 20);\r\n        add(vehicleModel);\r\n\r\n        vehicleType = new JLabel();\r\n        vehicleType.setBounds(20, 380, BASE_WIDTH, 20);\r\n        add(vehicleType);\r\n\r\n        vehicleNumber = new JLabel();\r\n        vehicleNumber.setBounds(20, 400, BASE_WIDTH, 20);\r\n        add(vehicleNumber);\r\n\r\n        vehicleBodyId = new JLabel();\r\n        vehicleBodyId.setBounds(20, 420, BASE_WIDTH, 40);\r\n        add(vehicleBodyId);\r\n    }\r\n\r\n    private void initSearchTab() {\r\n        JPanel searchPanel = new JPanel(new FlowLayout());\r\n        searchPanel.setBounds(10, 5, 780, 40);\r\n\r\n        searchPanel.add(new JLabel(\"Surname\"));\r\n\r\n        surnameTextField = new JTextField(9);\r\n        searchPanel.add(surnameTextField);\r\n\r\n        searchPanel.add(new JLabel(\"Owner ID\"));\r\n\r\n        ownerTextField = new JTextField(9);\r\n        searchPanel.add(ownerTextField);\r\n\r\n        searchPanel.add(new JLabel(\"Body ID\"));\r\n\r\n        bodyTextField = new JTextField(9);\r\n        searchPanel.add(bodyTextField);\r\n\r\n        JButton btnSearch = new JButton(\"Search\");\r\n        btnSearch.addActionListener(event -> search());\r\n        searchPanel.add(btnSearch);\r\n\r\n        JButton btnAdd = new JButton(\"Add\");\r\n        btnAdd.addActionListener(e -> {\r\n            SearchFrame.this.updateUI();\r\n            app.edit();\r\n        });\r\n        searchPanel.add(btnAdd);\r\n\r\n        JButton clearButton = new JButton(\"Clear\");\r\n        clearButton.addActionListener(e -> {\r\n            surnameTextField.setText(\"\");\r\n            ownerTextField.setText(\"\");\r\n            bodyTextField.setText(\"\");\r\n        });\r\n        searchPanel.add(clearButton);\r\n\r\n        JButton btnLogout = new JButton(\"Logout\");\r\n        btnLogout.addActionListener(e -> {\r\n            SearchFrame.this.updateUI();\r\n            app.login();\r\n        });\r\n        searchPanel.add(btnLogout);\r\n\r\n        add(searchPanel);\r\n    }\r\n\r\n    private void search() {\r\n        listModel.clear();\r\n        if (surnameTextField.getText().isEmpty() && ownerTextField.getText().isEmpty() && bodyTextField.getText().isEmpty()) {\r\n            List<SearchResult> searchResults = searchRepository.searchAll();\r\n            searchResults.forEach(person -> listModel.addElement(person));\r\n            table.setModel(new SearchResultTableModel(searchResults));\r\n        } else {\r\n            List<SearchResult> searchResults = searchRepository\r\n                .find(new QueryParam(surnameTextField.getText(), ownerTextField.getText(), bodyTextField.getText()));\r\n            searchResults.forEach(person -> listModel.addElement(person));\r\n            table.setModel(new SearchResultTableModel(searchResults));\r\n\r\n        }\r\n    }\r\n\r\n    private void delete() {\r\n        if (report != null) {\r\n            int confirmDialog = JOptionPane.showConfirmDialog(\r\n                this, \"Are you sure to delete it?\", \"Please confirm\", JOptionPane.YES_NO_OPTION);\r\n            if (confirmDialog == JOptionPane.YES_OPTION) {\r\n                driverRepository.deleteDamageInfo(report.getDamageInfo().getId());\r\n                driverRepository.deleteVehicleInfo(report.getVehicleInfo().getId());\r\n                driverRepository.deleteDriverInfo(report.getDriverInfo().getId());\r\n                bottomPanel.setVisible(false);\r\n                initialize();\r\n                search();\r\n            }\r\n        }\r\n    }\r\n\r\n    private void searchDriverInfo(int personId) {\r\n        DamageReport damageReport = searchRepository.searchDriverInfo(personId);\r\n        populateDamageReport(damageReport);\r\n    }\r\n\r\n    private void populateDamageReport(DamageReport report) {\r\n        driverPassId.setText(\"<html>Pass ID : \" + (report == null ? \"\" : \"<br>\" + report.getDriverInfo().getPassId())+\"</html>\");\r\n        driverSurname.setText(\"Last Name : \" + (report == null ? \"\" : \"\\n\" + report.getDriverInfo().getLastName()));\r\n        driverName.setText(\"Name : \" + (report == null ? \"\" : report.getDriverInfo().getName()));\r\n        driverAddress.setText(\"Address : \" + (report == null ? \"\" : \"\\n\" + report.getDriverInfo().getAddress()));\r\n        driverPhone.setText(\"Phone : \" + (report == null ? \"\" : \"\\n\" + report.getDriverInfo().getPhone()));\r\n\r\n        vehicleModel.setText(\"Model : \" + (report == null ? \"\" : \"\\n\" + report.getVehicleInfo().getModel()));\r\n        vehicleType.setText(\"Type : \" + (report == null ? \"\" : \"\\n\" + report.getVehicleInfo().getType()));\r\n        vehicleNumber.setText(\"Number : \" + (report == null ? \"\" : \"\\n\" + report.getVehicleInfo().getNumber()));\r\n        vehicleBodyId.setText(\"<html>Body ID : \" + (report == null ? \"\" : \"<br>\" + report.getVehicleInfo().getBodyId())+\"</html>\");\r\n        damageZone(report == null ? null : report.getDamageInfo());\r\n        if (report != null) {\r\n            bottomPanel.setVisible(true);\r\n            this.report = report;\r\n        }\r\n    }\r\n\r\n    private void damageZone(DamageInfo damageInfo) {\r\n        if (damageInfo != null) wIcon.removeAll();\r\n\r\n        int topPosition = 42;\r\n        wIcon.add(zoneLabel(155, topPosition, damageInfo != null && damageInfo.getDamage().getDamageZone()[9])); // zone 10\r\n        wIcon.add(zoneLabel(216, topPosition, damageInfo != null && damageInfo.getDamage().getDamageZone()[8])); // zone 9\r\n        wIcon.add(zoneLabel(275, topPosition, damageInfo != null && damageInfo.getDamage().getDamageZone()[7])); // zone 8\r\n        wIcon.add(zoneLabel(343, topPosition, damageInfo != null && damageInfo.getDamage().getDamageZone()[6])); // zone 7\r\n\r\n        int midPosition = 164;\r\n        wIcon.add(zoneLabel(17, midPosition, damageInfo != null && damageInfo.getDamage().getDamageZone()[12])); // zone 13\r\n        wIcon.add(zoneLabel(128, midPosition, damageInfo != null && damageInfo.getDamage().getDamageZone()[11])); // zone 12\r\n        wIcon.add(zoneLabel(264, midPosition, damageInfo != null && damageInfo.getDamage().getDamageZone()[10])); // zone 11\r\n        wIcon.add(zoneLabel(357, midPosition, damageInfo != null && damageInfo.getDamage().getDamageZone()[5])); // zone 6\r\n        wIcon.add(zoneLabel(437, midPosition, damageInfo != null && damageInfo.getDamage().getDamageZone()[4])); // zone 5\r\n\r\n        int botPosition = 288 ;\r\n        wIcon.add(zoneLabel(150, botPosition, damageInfo != null && damageInfo.getDamage().getDamageZone()[0])); // zone 1\r\n        wIcon.add(zoneLabel(216, botPosition, damageInfo != null && damageInfo.getDamage().getDamageZone()[1])); // zone 2\r\n        wIcon.add(zoneLabel(277, botPosition, damageInfo != null && damageInfo.getDamage().getDamageZone()[2])); // zone 3\r\n        wIcon.add(zoneLabel(344, botPosition, damageInfo != null && damageInfo.getDamage().getDamageZone()[3])); // zone 4\r\n\r\n        wIcon.repaint();\r\n    }\r\n\r\n    private JLabel zoneLabel(int x, int y, boolean enabled) {\r\n        SelectionPoint selectionPoint13 = new SelectionPoint(enabled);\r\n        JLabel zoneLabel = new JLabel(selectionPoint13);\r\n        zoneLabel.setBounds(x, y, 25, 25);\r\n        return zoneLabel;\r\n    }\r\n\r\n}\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- src/main/java/com/dww/insurance/frame/SearchFrame.java	(revision 20d40219615f6aa3583024938064f71ebc1bf38c)
++++ src/main/java/com/dww/insurance/frame/SearchFrame.java	(date 1565457956763)
+@@ -5,8 +5,10 @@
+ import com.dww.insurance.domain.QueryParam;
+ import com.dww.insurance.domain.SearchResult;
+ import com.dww.insurance.model.SearchResultTableModel;
+-import com.dww.insurance.service.DriverRepository;
+-import com.dww.insurance.service.SearchRepository;
++import com.dww.insurance.repository.DamageInfoRepository;
++import com.dww.insurance.repository.SearchRepository;
++import com.dww.insurance.service.DamageReportService;
++import com.dww.insurance.service.ServiceLocator;
+ 
+ import javax.imageio.ImageIO;
+ import javax.swing.*;
+@@ -24,14 +26,15 @@
+     private static final int BASE_WIDTH = 240;
+     private static final int BASE_HEIGHT = 20;
+ 
+-    private final DriverRepository driverRepository;
+-    private final SearchRepository searchRepository;
++    private SearchRepository searchRepository;
++    private DamageReportService damageReportService = ServiceLocator.getService(DamageReportService.class);
++
+ 
+     private JTextField surnameTextField;
+     private JTextField ownerTextField;
+     private JTextField bodyTextField;
+     private DefaultListModel<SearchResult> listModel = new DefaultListModel<>();
+-    private IApplication app;
++    private IMainFrame app;
+ 
+     private JLabel driverSurname;
+     private JLabel driverName;
+@@ -49,11 +52,9 @@
+ 
+     private JTable table;
+ 
+-
+-    public SearchFrame(IApplication app) {
++    public SearchFrame(IMainFrame app) {
+         this.app = app;
+         searchRepository = new SearchRepository();
+-        driverRepository = new DriverRepository();
+         initialize();
+     }
+ 
+@@ -268,9 +269,7 @@
+             int confirmDialog = JOptionPane.showConfirmDialog(
+                 this, "Are you sure to delete it?", "Please confirm", JOptionPane.YES_NO_OPTION);
+             if (confirmDialog == JOptionPane.YES_OPTION) {
+-                driverRepository.deleteDamageInfo(report.getDamageInfo().getId());
+-                driverRepository.deleteVehicleInfo(report.getVehicleInfo().getId());
+-                driverRepository.deleteDriverInfo(report.getDriverInfo().getId());
++                damageReportService.delete(report);
+                 bottomPanel.setVisible(false);
+                 initialize();
+                 search();
+@@ -305,23 +304,23 @@
+         if (damageInfo != null) wIcon.removeAll();
+ 
+         int topPosition = 42;
+-        wIcon.add(zoneLabel(155, topPosition, damageInfo != null && damageInfo.getDamage().getDamageZone()[9])); // zone 10
+-        wIcon.add(zoneLabel(216, topPosition, damageInfo != null && damageInfo.getDamage().getDamageZone()[8])); // zone 9
+-        wIcon.add(zoneLabel(275, topPosition, damageInfo != null && damageInfo.getDamage().getDamageZone()[7])); // zone 8
+-        wIcon.add(zoneLabel(343, topPosition, damageInfo != null && damageInfo.getDamage().getDamageZone()[6])); // zone 7
++        wIcon.add(zoneLabel(155, topPosition, damageInfo != null && damageInfo.getDamageZone()[9])); // zone 10
++        wIcon.add(zoneLabel(216, topPosition, damageInfo != null && damageInfo.getDamageZone()[8])); // zone 9
++        wIcon.add(zoneLabel(275, topPosition, damageInfo != null && damageInfo.getDamageZone()[7])); // zone 8
++        wIcon.add(zoneLabel(343, topPosition, damageInfo != null && damageInfo.getDamageZone()[6])); // zone 7
+ 
+         int midPosition = 164;
+-        wIcon.add(zoneLabel(17, midPosition, damageInfo != null && damageInfo.getDamage().getDamageZone()[12])); // zone 13
+-        wIcon.add(zoneLabel(128, midPosition, damageInfo != null && damageInfo.getDamage().getDamageZone()[11])); // zone 12
+-        wIcon.add(zoneLabel(264, midPosition, damageInfo != null && damageInfo.getDamage().getDamageZone()[10])); // zone 11
+-        wIcon.add(zoneLabel(357, midPosition, damageInfo != null && damageInfo.getDamage().getDamageZone()[5])); // zone 6
+-        wIcon.add(zoneLabel(437, midPosition, damageInfo != null && damageInfo.getDamage().getDamageZone()[4])); // zone 5
++        wIcon.add(zoneLabel(17, midPosition, damageInfo != null && damageInfo.getDamageZone()[12])); // zone 13
++        wIcon.add(zoneLabel(128, midPosition, damageInfo != null && damageInfo.getDamageZone()[11])); // zone 12
++        wIcon.add(zoneLabel(264, midPosition, damageInfo != null && damageInfo.getDamageZone()[10])); // zone 11
++        wIcon.add(zoneLabel(357, midPosition, damageInfo != null && damageInfo.getDamageZone()[5])); // zone 6
++        wIcon.add(zoneLabel(437, midPosition, damageInfo != null && damageInfo.getDamageZone()[4])); // zone 5
+ 
+         int botPosition = 288 ;
+-        wIcon.add(zoneLabel(150, botPosition, damageInfo != null && damageInfo.getDamage().getDamageZone()[0])); // zone 1
+-        wIcon.add(zoneLabel(216, botPosition, damageInfo != null && damageInfo.getDamage().getDamageZone()[1])); // zone 2
+-        wIcon.add(zoneLabel(277, botPosition, damageInfo != null && damageInfo.getDamage().getDamageZone()[2])); // zone 3
+-        wIcon.add(zoneLabel(344, botPosition, damageInfo != null && damageInfo.getDamage().getDamageZone()[3])); // zone 4
++        wIcon.add(zoneLabel(150, botPosition, damageInfo != null && damageInfo.getDamageZone()[0])); // zone 1
++        wIcon.add(zoneLabel(216, botPosition, damageInfo != null && damageInfo.getDamageZone()[1])); // zone 2
++        wIcon.add(zoneLabel(277, botPosition, damageInfo != null && damageInfo.getDamageZone()[2])); // zone 3
++        wIcon.add(zoneLabel(344, botPosition, damageInfo != null && damageInfo.getDamageZone()[3])); // zone 4
+ 
+         wIcon.repaint();
+     }
+Index: src/main/java/com/dww/insurance/service/ServiceLocator.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- src/main/java/com/dww/insurance/service/ServiceLocator.java	(date 1565453580664)
++++ src/main/java/com/dww/insurance/service/ServiceLocator.java	(date 1565453580664)
+@@ -0,0 +1,24 @@
++package com.dww.insurance.service;
++
++import java.util.HashMap;
++import java.util.Map;
++
++public class ServiceLocator {
++    private static ServiceLocator instance;
++
++    private Map<Class<?>, Object> services = new HashMap<>();
++
++    public void registerService(Class<?> serviceClass, Object service) {
++        services.put(serviceClass, service);
++    }
++
++    public static void setLocator(ServiceLocator locator) {
++        instance = locator;
++    }
++
++    @SuppressWarnings("unchecked")
++    public static <T> T getService(Class<T> serviceClass) {
++        return (T) instance.services.get(serviceClass);
++    }
++
++}
+Index: src/main/java/com/dww/insurance/frame/UserLogin.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package com.dww.insurance.frame;\r\n\r\nimport com.dww.insurance.domain.Credentials;\r\nimport com.dww.insurance.service.UserRepository;\r\n\r\nimport javax.swing.*;\r\nimport java.awt.*;\r\n\r\n\r\npublic class UserLogin extends JPanel {\r\n\r\n    private UserRepository userRepository;\r\n    private IApplication app;\r\n\r\n    public UserLogin(IApplication app) {\r\n        this.app = app;\r\n        userRepository = new UserRepository();\r\n        initialize();\r\n    }\r\n\r\n    public void initialize() {\r\n        removeAll();\r\n        setLayout(new GridBagLayout());\r\n\r\n        JPanel parent = new JPanel();\r\n        GridBagConstraints gbc = new GridBagConstraints();\r\n        gbc.fill = GridBagConstraints.CENTER;\r\n\r\n        JPanel panel = new JPanel();\r\n        panel.setLayout(new GridLayout(3, 2, 5, 5));\r\n        JLabel usernameLabel = new JLabel(\"Username\");\r\n        JLabel passwordLabel = new JLabel(\"Password\");\r\n        JTextField textField = new JTextField();\r\n        JPasswordField passwordField = new JPasswordField();\r\n        JButton okButton = new JButton(\"OK\");\r\n        okButton.addActionListener(e -> validateAction(textField, passwordField));\r\n        JButton cancelButton = new JButton(\"CANCEL\");\r\n        cancelButton.addActionListener(e -> exitAction());\r\n        panel.add(usernameLabel);\r\n        panel.add(textField);\r\n        panel.add(passwordLabel);\r\n        panel.add(passwordField);\r\n        panel.add(okButton);\r\n        panel.add(cancelButton);\r\n\r\n        parent.add(panel);\r\n        add(parent, gbc);\r\n    }\r\n\r\n    private void validateAction(JTextField textField, JPasswordField passwordField) {\r\n        Credentials credentials = userRepository.authorize(new Credentials(textField.getText(), String.valueOf(passwordField.getPassword())));\r\n        switch (credentials.getRole()) {\r\n            case USER:\r\n                app.search();\r\n                break;\r\n            case ADMIN:\r\n                app.adminPanel();\r\n                break;\r\n            case UNAUTHORIZED:\r\n            default:\r\n                JOptionPane.showMessageDialog(this, \"Incorrect login or password\", \"Error\", JOptionPane.ERROR_MESSAGE);\r\n        }\r\n    }\r\n\r\n    private void exitAction() {\r\n        int confirmDialog = JOptionPane.showConfirmDialog(\r\n            this, \"Are you sure you want to quit?\", \"Please confirm\", JOptionPane.YES_NO_OPTION);\r\n        if (confirmDialog == JOptionPane.YES_OPTION) {\r\n            System.exit(0);\r\n        }\r\n    }\r\n}\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- src/main/java/com/dww/insurance/frame/UserLogin.java	(revision 20d40219615f6aa3583024938064f71ebc1bf38c)
++++ src/main/java/com/dww/insurance/frame/UserLogin.java	(date 1565457956926)
+@@ -1,7 +1,8 @@
+ package com.dww.insurance.frame;
+ 
+-import com.dww.insurance.domain.Credentials;
+-import com.dww.insurance.service.UserRepository;
++import com.dww.insurance.domain.User;
++import com.dww.insurance.service.ServiceLocator;
++import com.dww.insurance.service.UserService;
+ 
+ import javax.swing.*;
+ import java.awt.*;
+@@ -9,12 +10,11 @@
+ 
+ public class UserLogin extends JPanel {
+ 
+-    private UserRepository userRepository;
+-    private IApplication app;
++    private UserService userService = ServiceLocator.getService(UserService.class);
++    private IMainFrame app;
+ 
+-    public UserLogin(IApplication app) {
++    public UserLogin(IMainFrame app) {
+         this.app = app;
+-        userRepository = new UserRepository();
+         initialize();
+     }
+ 
+@@ -48,7 +48,7 @@
+     }
+ 
+     private void validateAction(JTextField textField, JPasswordField passwordField) {
+-        Credentials credentials = userRepository.authorize(new Credentials(textField.getText(), String.valueOf(passwordField.getPassword())));
++        User credentials = userService.authorize(new User(textField.getText(), String.valueOf(passwordField.getPassword())));
+         switch (credentials.getRole()) {
+             case USER:
+                 app.search();
+Index: src/main/java/com/dww/insurance/service/UserService.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- src/main/java/com/dww/insurance/service/UserService.java	(date 1565457118937)
++++ src/main/java/com/dww/insurance/service/UserService.java	(date 1565457118937)
+@@ -0,0 +1,36 @@
++package com.dww.insurance.service;
++
++import com.dww.insurance.domain.User;
++import com.dww.insurance.repository.UserRepository;
++
++import java.util.List;
++
++public class UserService {
++
++    private UserRepository userRepository;
++
++    public User authorize(User user) {
++        return userRepository.authorize(user);
++    }
++
++    public List<User> findUsers() {
++        return userRepository.findUsers();
++    }
++
++    public List<User> find(User user) {
++        return userRepository.find(user);
++    }
++
++    public void setUserRepository(UserRepository userRepository) {
++        this.userRepository = userRepository;
++    }
++
++    public void deleteUser(String login) {
++        userRepository.deleteUser(login);
++    }
++
++    public void insertUser(User user) {
++        userRepository.insertUser(user);
++    }
++}
++
+Index: src/main/java/com/dww/insurance/InsuranceApp.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package com.dww.insurance;\r\n\r\nimport static javax.swing.SwingUtilities.*;\r\n\r\nimport com.dww.insurance.frame.MainApp;\r\n\r\npublic class InsuranceApp {\r\n\r\n    public static void main(String[] args) {\r\n        invokeLater(() -> {\r\n            MainApp startFrame = new MainApp(\"Start Page\");\r\n            startFrame.setVisible(true);\r\n        });\r\n    }\r\n}\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- src/main/java/com/dww/insurance/InsuranceApp.java	(revision 20d40219615f6aa3583024938064f71ebc1bf38c)
++++ src/main/java/com/dww/insurance/InsuranceApp.java	(date 1565457118883)
+@@ -1,15 +1,55 @@
+ package com.dww.insurance;
+ 
+-import static javax.swing.SwingUtilities.*;
++import static javax.swing.SwingUtilities.invokeLater;
+ 
+-import com.dww.insurance.frame.MainApp;
++import com.dww.insurance.frame.MainFrame;
++import com.dww.insurance.repository.DamageInfoRepository;
++import com.dww.insurance.repository.DriverInfoRepository;
++import com.dww.insurance.repository.UserRepository;
++import com.dww.insurance.repository.VehicleInfoRepository;
++import com.dww.insurance.service.DamageInfoService;
++import com.dww.insurance.service.DamageReportService;
++import com.dww.insurance.service.DriverInfoService;
++import com.dww.insurance.service.ServiceLocator;
++import com.dww.insurance.service.UserService;
++import com.dww.insurance.service.VehicleInfoService;
+ 
+ public class InsuranceApp {
+ 
+     public static void main(String[] args) {
++        initServices();
+         invokeLater(() -> {
+-            MainApp startFrame = new MainApp("Start Page");
++            MainFrame startFrame = new MainFrame("Start Page");
++
+             startFrame.setVisible(true);
+         });
+     }
++
++    private static void initServices() {
++        ServiceLocator locator = new ServiceLocator();
++
++        DriverInfoService driverInfoService = new DriverInfoService();
++        driverInfoService.setDriverInfoRepository(new DriverInfoRepository());
++        locator.registerService(DriverInfoService.class, driverInfoService);
++
++        UserService userService = new UserService();
++        userService.setUserRepository(new UserRepository());
++        locator.registerService(UserService.class, userService);
++
++        VehicleInfoService vehicleInfoService = new VehicleInfoService();
++        vehicleInfoService.setVehicleInfoRepository(new VehicleInfoRepository());
++        locator.registerService(VehicleInfoService.class, vehicleInfoService);
++
++        DamageInfoService damageInfoService = new DamageInfoService();
++        damageInfoService.setDamageInfoRepository(new DamageInfoRepository());
++        locator.registerService(DamageInfoService.class, damageInfoService);
++
++        DamageReportService damageReportService = new DamageReportService();
++        damageReportService.setDamageInfoService(damageInfoService);
++        damageReportService.setVehicleInfoService(vehicleInfoService);
++        damageReportService.setDriverInfoService(driverInfoService);
++        locator.registerService(DamageReportService.class, damageReportService);
++
++        ServiceLocator.setLocator(locator);
++    }
+ }
+Index: src/main/java/com/dww/insurance/model/UserTableModel.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package com.dww.insurance.model;\r\n\r\nimport com.dww.insurance.domain.Credentials;\r\n\r\nimport javax.swing.table.AbstractTableModel;\r\nimport java.util.List;\r\n\r\npublic class UserTableModel extends AbstractTableModel {\r\n\r\n    private String[] columns = {\"Login\", \"Pass\", \"Role\"};\r\n    private List<Credentials> list;\r\n\r\n    public UserTableModel(List<Credentials> list) {\r\n        this.list = list;\r\n    }\r\n\r\n    @Override\r\n    public int getRowCount() {\r\n        int size;\r\n        if (list == null) {\r\n            size = 0;\r\n        } else {\r\n            size = list.size();\r\n        }\r\n        return size;\r\n    }\r\n\r\n    @Override\r\n    public int getColumnCount() {\r\n        return columns.length;\r\n    }\r\n\r\n    @Override\r\n    public Object getValueAt(int rowIndex, int columnIndex) {\r\n        Object temp = null;\r\n        if (columnIndex == 0) {\r\n            temp = list.get(rowIndex).getLogin();\r\n        } else if (columnIndex == 1) {\r\n            temp = list.get(rowIndex).getPassword();\r\n        } else if (columnIndex == 2) {\r\n            temp = list.get(rowIndex).getRole();\r\n        }\r\n        return temp;\r\n    }\r\n\r\n    public Credentials getValue(int rowIndex) {\r\n        return list.get(rowIndex);\r\n    }\r\n\r\n    @Override\r\n    public String getColumnName(int col) {\r\n        return columns[col];\r\n    }\r\n}\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- src/main/java/com/dww/insurance/model/UserTableModel.java	(revision 20d40219615f6aa3583024938064f71ebc1bf38c)
++++ src/main/java/com/dww/insurance/model/UserTableModel.java	(date 1565446910518)
+@@ -1,6 +1,6 @@
+ package com.dww.insurance.model;
+ 
+-import com.dww.insurance.domain.Credentials;
++import com.dww.insurance.domain.User;
+ 
+ import javax.swing.table.AbstractTableModel;
+ import java.util.List;
+@@ -8,9 +8,9 @@
+ public class UserTableModel extends AbstractTableModel {
+ 
+     private String[] columns = {"Login", "Pass", "Role"};
+-    private List<Credentials> list;
++    private List<User> list;
+ 
+-    public UserTableModel(List<Credentials> list) {
++    public UserTableModel(List<User> list) {
+         this.list = list;
+     }
+ 
+@@ -43,7 +43,7 @@
+         return temp;
+     }
+ 
+-    public Credentials getValue(int rowIndex) {
++    public User getValue(int rowIndex) {
+         return list.get(rowIndex);
+     }
+ 
+Index: src/main/java/com/dww/insurance/service/DriverRepository.java
+===================================================================
+--- src/main/java/com/dww/insurance/service/DriverRepository.java	(revision 20d40219615f6aa3583024938064f71ebc1bf38c)
++++ src/main/java/com/dww/insurance/repository/DamageInfoRepository.java	(date 1565457956868)
+@@ -1,199 +1,74 @@
+-package com.dww.insurance.service;
++package com.dww.insurance.repository;
+ 
+ import com.dww.insurance.domain.DamageInfo;
+-import com.dww.insurance.domain.DriverInfo;
+-import com.dww.insurance.domain.VehicleInfo;
+ 
+ import java.sql.Connection;
+-import java.sql.DriverManager;
++import java.sql.Date;
+ import java.sql.PreparedStatement;
+-import java.sql.ResultSet;
+ import java.sql.SQLException;
+-import java.sql.Statement;
+-import java.sql.Date;
+-import java.util.Properties;
+-import java.util.Random;
+-
+-public class DriverRepository {
+-
+-    private Properties props = AppProperties.getInstance().getAppProps();
+-
+-    public int insertDriverInfo(DriverInfo driverInfo) {
+-        Connection conn = null;
+-        PreparedStatement stmt = null;
+-        try {
+-            conn = DriverManager.getConnection(props.getProperty("url"), props.getProperty("user"), props.getProperty("password"));
+-            stmt = conn.prepareStatement("INSERT INTO owner (name, pass_id, last_name, address, phone) VALUES (?,?,?,?,?)", Statement.RETURN_GENERATED_KEYS);
+-            stmt.setString(1, driverInfo.getName());
+-            stmt.setString(2, driverInfo.getPassId());
+-            stmt.setString(3, driverInfo.getLastName());
+-            stmt.setString(4, driverInfo.getAddress());
+-            stmt.setString(5, driverInfo.getPhone());
+-            stmt.executeUpdate();
+-            ResultSet rs = stmt.getGeneratedKeys();
+-            rs.next();
+-            return rs.getInt(1);
+ 
+-        } catch (SQLException ex) {
+-            ex.printStackTrace();
+-            throw new RuntimeException(ex);
+-        } finally {
+-            closeConnection(conn, stmt);
+-        }
+-    }
++public class DamageInfoRepository {
+ 
+-    public void updateDriverInfo(DriverInfo driverInfo) {
+-        Connection conn = null;
+-        PreparedStatement stmt = null;
+-        try {
+-            conn = DriverManager.getConnection(props.getProperty("url"), props.getProperty("user"), props.getProperty("password"));
+-            stmt = conn.prepareStatement("UPDATE owner SET name = ?, pass_id = ?, last_name = ?, address = ?, phone = ? WHERE id = ?");
+-            stmt.setString(1, driverInfo.getName());
+-            stmt.setString(2, driverInfo.getPassId());
+-            stmt.setString(3, driverInfo.getLastName());
+-            stmt.setString(4, driverInfo.getAddress());
+-            stmt.setString(5, driverInfo.getPhone());
+-            stmt.setInt(6, driverInfo.getId());
+-            stmt.executeUpdate();
+-        } catch (SQLException ex) {
+-            ex.printStackTrace();
+-            throw new RuntimeException(ex);
+-        } finally {
+-            closeConnection(conn, stmt);
+-        }
+-    }
++    private static final String UPDATE_STATEMENT =
++        "UPDATE damage SET date = ?, zone1 = ?, zone2 = ?, zone3 = ?, zone4 = ?, zone5 = ?, zone6 = ?, zone7 = ?," +
++            " zone8 = ?, zone9 = ?, zone10 = ?, zone11 = ?, zone12 = ?, zone13 = ? WHERE id = ? AND vehicle_id = ?";
++    private static final String DELETE_STATEMENT = "DELETE FROM damage WHERE id = ?";
++    private static final String INSERT_STATEMENT =
++        "INSERT INTO damage (vehicle_id, date, zone1, zone2, zone3, zone4, zone5, zone6, zone7, zone8, zone9," +
++            " zone10, zone11, zone12, zone13) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
+ 
+-    public void deleteDriverInfo(int driverInfoId) {
+-        Connection conn = null;
+-        PreparedStatement stmt = null;
+-        try {
+-            conn = DriverManager.getConnection(props.getProperty("url"), props.getProperty("user"), props.getProperty("password"));
+-            stmt = conn.prepareStatement("DELETE FROM owner WHERE id = ?");
+-            stmt.setInt(1, driverInfoId);
+-            stmt.executeUpdate();
+-        } catch (SQLException ex) {
+-            ex.printStackTrace();
+-            throw new RuntimeException(ex);
+-        } finally {
+-            closeConnection(conn, stmt);
+-        }
+-    }
+-
+-    public int insertVehicleInfo(int driverId, VehicleInfo vehicleInfo) {
+-        Connection conn = null;
+-        PreparedStatement stmt = null;
+-
+-        try {
+-            conn = DriverManager.getConnection(props.getProperty("url"), props.getProperty("user"), props.getProperty("password"));
+-            stmt = conn.prepareStatement("INSERT INTO vehicle (owner_id, type, body_number, model, number) VALUES (?,?,?,?,?)", Statement.RETURN_GENERATED_KEYS);
+-            stmt.setInt(1, driverId);
+-            stmt.setString(2, vehicleInfo.getType().name());
+-            stmt.setString(3, vehicleInfo.getBodyId());
+-            stmt.setString(4, vehicleInfo.getModel());
+-            stmt.setString(5, vehicleInfo.getNumber());
+-            stmt.executeUpdate();
+-            ResultSet rs = stmt.getGeneratedKeys();
+-            rs.next();
+-            return rs.getInt(1);
+-        } catch (SQLException ex) {
+-            ex.printStackTrace();
+-            throw new RuntimeException(ex);
+-        } finally {
+-            closeConnection(conn, stmt);
+-        }
+-    }
+-
+-
+-    public void updateVehicleInfo(VehicleInfo vehicleInfo) {
++    public void insert(int vehicleId, DamageInfo damageInfo) {
+         Connection conn = null;
+-        PreparedStatement stmt = null;
++        PreparedStatement stmt;
+ 
+         try {
+-            conn = DriverManager.getConnection(props.getProperty("url"), props.getProperty("user"), props.getProperty("password"));
+-            stmt = conn.prepareStatement("UPDATE vehicle SET type = ?, body_number = ?, model = ?, number = ? WHERE id = ? AND owner_id = ?");
+-            stmt.setString(1, vehicleInfo.getType().name());
+-            stmt.setString(2, vehicleInfo.getBodyId());
+-            stmt.setString(3, vehicleInfo.getModel());
+-            stmt.setString(4, vehicleInfo.getNumber());
+-            stmt.setInt(5, vehicleInfo.getId());
+-            stmt.setInt(6, vehicleInfo.getOwner_id());
+-            stmt.executeUpdate();
+-        } catch (SQLException ex) {
+-            ex.printStackTrace();
+-            throw new RuntimeException(ex);
+-        } finally {
+-            closeConnection(conn, stmt);
+-        }
+-    }
+-
+-    public void deleteVehicleInfo(int vehicleInfoId) {
+-        Connection conn = null;
+-        PreparedStatement stmt = null;
+-        try {
+-            conn = DriverManager.getConnection(props.getProperty("url"), props.getProperty("user"), props.getProperty("password"));
+-            stmt = conn.prepareStatement("DELETE FROM vehicle WHERE id = ?");
+-            stmt.setInt(1, vehicleInfoId);
+-            stmt.executeUpdate();
+-        } catch (SQLException ex) {
+-            ex.printStackTrace();
+-            throw new RuntimeException(ex);
+-        } finally {
+-            closeConnection(conn, stmt);
+-        }
+-    }
+-
+-    public void insertDamageInfo(int vehicleId, DamageInfo damageInfo) {
+-        Connection conn = null;
+-        PreparedStatement stmt = null;
+-
+-        try {
+-            conn = DriverManager.getConnection(props.getProperty("url"), props.getProperty("user"), props.getProperty("password"));
+-            stmt = conn.prepareStatement("INSERT INTO damage (vehicle_id, date, zone1, zone2, zone3, zone4, zone5, zone6, zone7, zone8, zone9, zone10, zone11, zone12, zone13) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)");
++            conn = ConnectionPool.getInstance().getConnection();
++            stmt = conn.prepareStatement(INSERT_STATEMENT);
+             stmt.setInt(1, vehicleId);
+             stmt.setDate(2, new Date(System.currentTimeMillis()));
+-            stmt.setBoolean(3, damageInfo.getDamage().getDamageZone()[0]);
+-            stmt.setBoolean(4, damageInfo.getDamage().getDamageZone()[1]);
+-            stmt.setBoolean(5, damageInfo.getDamage().getDamageZone()[2]);
+-            stmt.setBoolean(6, damageInfo.getDamage().getDamageZone()[3]);
+-            stmt.setBoolean(7, damageInfo.getDamage().getDamageZone()[4]);
+-            stmt.setBoolean(8, damageInfo.getDamage().getDamageZone()[5]);
+-            stmt.setBoolean(9, damageInfo.getDamage().getDamageZone()[6]);
+-            stmt.setBoolean(10, damageInfo.getDamage().getDamageZone()[7]);
+-            stmt.setBoolean(11, damageInfo.getDamage().getDamageZone()[8]);
+-            stmt.setBoolean(12, damageInfo.getDamage().getDamageZone()[9]);
+-            stmt.setBoolean(13, damageInfo.getDamage().getDamageZone()[10]);
+-            stmt.setBoolean(14, damageInfo.getDamage().getDamageZone()[11]);
+-            stmt.setBoolean(15, damageInfo.getDamage().getDamageZone()[12]);
++            stmt.setBoolean(3, damageInfo.getDamageZone()[0]);
++            stmt.setBoolean(4, damageInfo.getDamageZone()[1]);
++            stmt.setBoolean(5, damageInfo.getDamageZone()[2]);
++            stmt.setBoolean(6, damageInfo.getDamageZone()[3]);
++            stmt.setBoolean(7, damageInfo.getDamageZone()[4]);
++            stmt.setBoolean(8, damageInfo.getDamageZone()[5]);
++            stmt.setBoolean(9, damageInfo.getDamageZone()[6]);
++            stmt.setBoolean(10, damageInfo.getDamageZone()[7]);
++            stmt.setBoolean(11, damageInfo.getDamageZone()[8]);
++            stmt.setBoolean(12, damageInfo.getDamageZone()[9]);
++            stmt.setBoolean(13, damageInfo.getDamageZone()[10]);
++            stmt.setBoolean(14, damageInfo.getDamageZone()[11]);
++            stmt.setBoolean(15, damageInfo.getDamageZone()[12]);
+             stmt.executeUpdate();
+         } catch (SQLException ex) {
+             ex.printStackTrace();
+             throw new RuntimeException(ex);
+         } finally {
+-            closeConnection(conn, stmt);
++            ConnectionPool.getInstance().releaseConnection(conn);
+         }
+     }
+ 
+-    public void updateDamageInfo(int vehicleId, DamageInfo damageInfo) {
++    public void update(int vehicleId, DamageInfo damageInfo) {
+         Connection conn = null;
+-        PreparedStatement stmt = null;
++        PreparedStatement stmt;
+ 
+         try {
+-            conn = DriverManager.getConnection(props.getProperty("url"), props.getProperty("user"), props.getProperty("password"));
+-            stmt = conn.prepareStatement("UPDATE damage SET date = ?, zone1 = ?, zone2 = ?, zone3 = ?, zone4 = ?, zone5 = ?, zone6 = ?, zone7 = ?, zone8 = ?, zone9 = ?, zone10 = ?, zone11 = ?, zone12 = ?, zone13 = ? WHERE id = ? AND vehicle_id = ?");
++            conn = ConnectionPool.getInstance().getConnection();
++            stmt = conn.prepareStatement(UPDATE_STATEMENT);
+             stmt.setDate(1, new Date(System.currentTimeMillis()));
+-            stmt.setBoolean(2, damageInfo.getDamage().getDamageZone()[0]);
+-            stmt.setBoolean(3, damageInfo.getDamage().getDamageZone()[1]);
+-            stmt.setBoolean(4, damageInfo.getDamage().getDamageZone()[2]);
+-            stmt.setBoolean(5, damageInfo.getDamage().getDamageZone()[3]);
+-            stmt.setBoolean(6, damageInfo.getDamage().getDamageZone()[4]);
+-            stmt.setBoolean(7, damageInfo.getDamage().getDamageZone()[5]);
+-            stmt.setBoolean(8, damageInfo.getDamage().getDamageZone()[6]);
+-            stmt.setBoolean(9, damageInfo.getDamage().getDamageZone()[7]);
+-            stmt.setBoolean(10, damageInfo.getDamage().getDamageZone()[8]);
+-            stmt.setBoolean(11, damageInfo.getDamage().getDamageZone()[9]);
+-            stmt.setBoolean(12, damageInfo.getDamage().getDamageZone()[10]);
+-            stmt.setBoolean(13, damageInfo.getDamage().getDamageZone()[11]);
+-            stmt.setBoolean(14, damageInfo.getDamage().getDamageZone()[12]);
++            stmt.setBoolean(2, damageInfo.getDamageZone()[0]);
++            stmt.setBoolean(3, damageInfo.getDamageZone()[1]);
++            stmt.setBoolean(4, damageInfo.getDamageZone()[2]);
++            stmt.setBoolean(5, damageInfo.getDamageZone()[3]);
++            stmt.setBoolean(6, damageInfo.getDamageZone()[4]);
++            stmt.setBoolean(7, damageInfo.getDamageZone()[5]);
++            stmt.setBoolean(8, damageInfo.getDamageZone()[6]);
++            stmt.setBoolean(9, damageInfo.getDamageZone()[7]);
++            stmt.setBoolean(10, damageInfo.getDamageZone()[8]);
++            stmt.setBoolean(11, damageInfo.getDamageZone()[9]);
++            stmt.setBoolean(12, damageInfo.getDamageZone()[10]);
++            stmt.setBoolean(13, damageInfo.getDamageZone()[11]);
++            stmt.setBoolean(14, damageInfo.getDamageZone()[12]);
+             stmt.setInt(15, damageInfo.getId());
+             stmt.setInt(16, vehicleId);
+             stmt.executeUpdate();
+@@ -201,43 +76,24 @@
+             ex.printStackTrace();
+             throw new RuntimeException(ex);
+         } finally {
+-            closeConnection(conn, stmt);
++            ConnectionPool.getInstance().releaseConnection(conn);
+         }
+     }
+ 
+-    public void deleteDamageInfo(int damageInfoId) {
++    public void delete(int damageInfoId) {
+         Connection conn = null;
+-        PreparedStatement stmt = null;
++        PreparedStatement stmt;
+ 
+         try {
+-            conn = DriverManager.getConnection(props.getProperty("url"), props.getProperty("user"), props.getProperty("password"));
+-            stmt = conn.prepareStatement("DELETE FROM damage WHERE id = ?");
++            conn = ConnectionPool.getInstance().getConnection();
++            stmt = conn.prepareStatement(DELETE_STATEMENT);
+             stmt.setInt(1, damageInfoId);
+             stmt.executeUpdate();
+         } catch (SQLException ex) {
+             ex.printStackTrace();
+             throw new RuntimeException(ex);
+         } finally {
+-            closeConnection(conn, stmt);
+-        }
+-    }
+-
+-    private void closeConnection(Connection conn, PreparedStatement stmt) {
+-        try {
+-            if (stmt != null) {
+-                stmt.close();
+-            }
+-        } catch (Exception e) {
+-            e.printStackTrace();
+-            throw new RuntimeException(e);
+-        }
+-        try {
+-            if (conn != null) {
+-                conn.close();
+-            }
+-        } catch (Exception e) {
+-            e.printStackTrace();
+-            throw new RuntimeException(e);
++            ConnectionPool.getInstance().releaseConnection(conn);
+         }
+     }
+ }
+Index: src/main/java/com/dww/insurance/service/SearchRepository.java
+===================================================================
+--- src/main/java/com/dww/insurance/service/SearchRepository.java	(revision 20d40219615f6aa3583024938064f71ebc1bf38c)
++++ src/main/java/com/dww/insurance/repository/SearchRepository.java	(date 1565457956830)
+@@ -1,32 +1,32 @@
+-package com.dww.insurance.service;
++package com.dww.insurance.repository;
+ 
+-import com.dww.insurance.domain.Damage;
+ import com.dww.insurance.domain.DamageInfo;
+ import com.dww.insurance.domain.DamageReport;
+ import com.dww.insurance.domain.DriverInfo;
+-import com.dww.insurance.domain.SearchResult;
+ import com.dww.insurance.domain.QueryParam;
++import com.dww.insurance.domain.SearchResult;
+ import com.dww.insurance.domain.VehicleInfo;
+ import com.dww.insurance.domain.VehicleType;
+ 
+ import java.sql.Connection;
+-import java.sql.DriverManager;
+ import java.sql.PreparedStatement;
+ import java.sql.ResultSet;
+ import java.sql.SQLException;
+ import java.util.ArrayList;
+ import java.util.List;
+-import java.util.Properties;
+ 
+ public class SearchRepository {
+ 
+-    private Properties props = AppProperties.getInstance().getAppProps();
++    private static final String SELECT_STATEMENT =
++        "SELECT * FROM owner JOIN vehicle v on owner.id = v.owner_id JOIN damage d on v.id = d.vehicle_id WHERE owner.id = ?";
++    private static final String SELECT_ALL_STATEMENT =
++        "select o.id, o.name, o.last_name, v.body_number from owner o join vehicle v on o.id = v.owner_id order by o.id";
+ 
+     public List<SearchResult> find(QueryParam queryParam) {
+         Connection conn = null;
+-        PreparedStatement stmt = null;
++        PreparedStatement stmt;
+         try {
+-            conn = DriverManager.getConnection(props.getProperty("url"), props.getProperty("user"), props.getProperty("password"));
++            conn = ConnectionPool.getInstance().getConnection();
+             List<Object> parameters = new ArrayList<>();
+             StringBuilder query = new StringBuilder("select o.id, o.name, o.last_name, v.body_number from owner o join vehicle v on o.id = v.owner_id where 1=1");
+             if (queryParam.getOwnerId() > 0) {
+@@ -60,17 +60,16 @@
+             ex.printStackTrace();
+             throw new RuntimeException(ex);
+         } finally {
+-            closeConnection(conn, stmt);
++            ConnectionPool.getInstance().releaseConnection(conn);
+         }
+     }
+ 
+     public List<SearchResult> searchAll() {
+         Connection conn = null;
+-        PreparedStatement stmt = null;
+-
++        PreparedStatement stmt;
+         try {
+-            conn = DriverManager.getConnection(props.getProperty("url"), props.getProperty("user"), props.getProperty("password"));
+-            stmt = conn.prepareStatement("select o.id, o.name, o.last_name, v.body_number from owner o join vehicle v on o.id = v.owner_id order by o.id");
++            conn = ConnectionPool.getInstance().getConnection();
++            stmt = conn.prepareStatement(SELECT_ALL_STATEMENT);
+             ResultSet rs = stmt.executeQuery();
+             List<SearchResult> persons = new ArrayList<>();
+             while (rs.next()) {
+@@ -81,20 +80,18 @@
+             ex.printStackTrace();
+             throw new RuntimeException(ex);
+         } finally {
+-            closeConnection(conn, stmt);
++            ConnectionPool.getInstance().releaseConnection(conn);
+         }
+ 
+     }
+ 
+     public DamageReport searchDriverInfo(int ownerId) {
+         Connection conn = null;
+-        PreparedStatement stmt = null;
+-
++        PreparedStatement stmt;
+         try {
+-            conn = DriverManager.getConnection(props.getProperty("url"), props.getProperty("user"), props.getProperty("password"));
+-            stmt = conn.prepareStatement("SELECT * FROM owner JOIN vehicle v on owner.id = v.owner_id JOIN damage d on v.id = d.vehicle_id WHERE owner.id = ?");
++            conn = ConnectionPool.getInstance().getConnection();
++            stmt = conn.prepareStatement(SELECT_STATEMENT);
+             stmt.setInt(1, ownerId);
+-
+             ResultSet rs = stmt.executeQuery();
+             if (rs.wasNull()) {
+                 return null;
+@@ -115,10 +112,10 @@
+                 vehicleInfo.setBodyId(rs.getString(11));
+                 vehicleInfo.setModel(rs.getString(12));
+ 
+-                DamageInfo damageInfo = new DamageInfo();
++                DamageInfo damageInfo = new DamageInfo(new boolean[13]);
+                 damageInfo.setId(rs.getInt(13));
+                 damageInfo.setDate(rs.getDate(15));
+-                damageInfo.setDamage(new Damage(new boolean[]{
++                damageInfo.setDamageZone(new boolean[]{
+                     rs.getBoolean(16),
+                     rs.getBoolean(17),
+                     rs.getBoolean(18),
+@@ -136,7 +133,7 @@
+                     rs.getBoolean(27),
+ 
+                     rs.getBoolean(28)
+-                }));
++                });
+ 
+                 DamageReport damageReport = new DamageReport();
+                 damageReport.setDriverInfo(driverInfo);
+@@ -150,26 +147,7 @@
+             ex.printStackTrace();
+             throw new RuntimeException(ex);
+         } finally {
+-            closeConnection(conn, stmt);
+-        }
+-    }
+-
+-    private void closeConnection(Connection conn, PreparedStatement stmt) {
+-        try {
+-            if (stmt != null) {
+-                stmt.close();
+-            }
+-        } catch (Exception e) {
+-            e.printStackTrace();
+-            throw new RuntimeException(e);
+-        }
+-        try {
+-            if (conn != null) {
+-                conn.close();
+-            }
+-        } catch (Exception e) {
+-            e.printStackTrace();
+-            throw new RuntimeException(e);
++            ConnectionPool.getInstance().releaseConnection(conn);
+         }
+     }
+ 
+Index: src/main/java/com/dww/insurance/service/UserRepository.java
+===================================================================
+--- src/main/java/com/dww/insurance/service/UserRepository.java	(revision 20d40219615f6aa3583024938064f71ebc1bf38c)
++++ src/main/java/com/dww/insurance/repository/UserRepository.java	(date 1565457118746)
+@@ -1,4 +1,4 @@
+-package com.dww.insurance.service;
++package com.dww.insurance.repository;
+ 
+ import com.dww.insurance.domain.*;
+ 
+@@ -8,48 +8,50 @@
+ import java.sql.*;
+ import java.util.ArrayList;
+ import java.util.List;
+-import java.util.Properties;
+ 
+ public class UserRepository {
+ 
+-    private Properties props = AppProperties.getInstance().getAppProps();
++    private static final String SELECT_STATEMENT = "select user_role from public.user where login = ? and pass = ?";
++    private static final String SELECT_ALL_STATEMENT = "select * from public.user";
++    private static final String DELETE_STATEMENT = "delete from public.user where login = ?";
++    private static final String INSERT_STATEMENT = "insert into public.user (login, pass, user_role) values (?,?,?)";
+ 
+-    public Credentials authorize(Credentials credentials) {
++    public User authorize(User user) {
+         Connection conn = null;
+-        PreparedStatement stmt = null;
++        PreparedStatement stmt;
+         try {
+             MessageDigest md = MessageDigest.getInstance("MD5");
+-            md.update(credentials.getPassword().getBytes());
++            md.update(user.getPassword().getBytes());
+             byte[] digest = md.digest();
+             String hash = DatatypeConverter.printHexBinary(digest).toUpperCase();
+ 
+-            conn = DriverManager.getConnection(props.getProperty("url"), props.getProperty("user"), props.getProperty("password"));
+-            stmt = conn.prepareStatement("select user_role from public.user where login = ? and pass = ?");
+-            stmt.setString(1, credentials.getLogin());
++            conn = ConnectionPool.getInstance().getConnection();
++            stmt = conn.prepareStatement(SELECT_STATEMENT);
++            stmt.setString(1, user.getLogin());
+             stmt.setString(2, hash);
+             ResultSet rs = stmt.executeQuery();
+             while (rs.next()) {
+-                credentials.setRole(UserRole.lookupById(rs.getInt(1)));
++                user.setRole(UserRole.lookupById(rs.getInt(1)));
+             }
+-            return credentials;
++            return user;
+         } catch (SQLException | NoSuchAlgorithmException ex) {
+             ex.printStackTrace();
+             throw new RuntimeException(ex);
+         } finally {
+-            closeConnection(conn, stmt);
++            ConnectionPool.getInstance().releaseConnection(conn);
+         }
+     }
+ 
+-    public List<Credentials> findUsers() {
++    public List<User> findUsers() {
+         Connection conn = null;
+-        PreparedStatement stmt = null;
++        PreparedStatement stmt;
+         try {
+-            conn = DriverManager.getConnection(props.getProperty("url"), props.getProperty("user"), props.getProperty("password"));
+-            stmt = conn.prepareStatement("select * from public.user");
++            conn = ConnectionPool.getInstance().getConnection();
++            stmt = conn.prepareStatement(SELECT_ALL_STATEMENT);
+             ResultSet rs = stmt.executeQuery();
+-            List<Credentials> credentialsList = new ArrayList<>();
++            List<User> credentialsList = new ArrayList<>();
+             while (rs.next()) {
+-                Credentials credentials = new Credentials(rs.getString(1), rs.getString(2));
++                User credentials = new User(rs.getString(1), rs.getString(2));
+                 credentials.setRole(UserRole.lookupById(rs.getInt(3)));
+                 credentialsList.add(credentials);
+             }
+@@ -58,24 +60,24 @@
+             ex.printStackTrace();
+             throw new RuntimeException(ex);
+         } finally {
+-            closeConnection(conn, stmt);
++            ConnectionPool.getInstance().releaseConnection(conn);
+         }
+     }
+ 
+-    public List<Credentials> find(Credentials searchParam) {
++    public List<User> find(User user) {
+         Connection conn = null;
+-        PreparedStatement stmt = null;
++        PreparedStatement stmt;
+         try {
+-            conn = DriverManager.getConnection(props.getProperty("url"), props.getProperty("user"), props.getProperty("password"));
++            conn = ConnectionPool.getInstance().getConnection();
+             List<Object> parameters = new ArrayList<>();
+             StringBuilder query = new StringBuilder("select * from public.user where 1=1");
+-            if (searchParam.getRole() != UserRole.ALL && searchParam.getRole() != null) {
++            if (user.getRole() != UserRole.ALL && user.getRole() != null) {
+                 query.append(" and user_role = ?");
+-                parameters.add(searchParam.getRole().getId());
++                parameters.add(user.getRole().getId());
+             }
+-            if (!isBlank(searchParam.getLogin())) {
++            if (!isBlank(user.getLogin())) {
+                 query.append(" and login ilike ?");
+-                parameters.add(searchParam.getLogin());
++                parameters.add(user.getLogin());
+             }
+             stmt = conn.prepareStatement(query.toString());
+             for (int i = 0; i < parameters.size(); i++) {
+@@ -87,9 +89,9 @@
+                 }
+             }
+             ResultSet rs = stmt.executeQuery();
+-            List<Credentials> credentialsList = new ArrayList<>();
++            List<User> credentialsList = new ArrayList<>();
+             while (rs.next()) {
+-                Credentials credentials = new Credentials(rs.getString(1), rs.getString(2));
++                User credentials = new User(rs.getString(1), rs.getString(2));
+                 credentials.setRole(UserRole.lookupById(rs.getInt(3)));
+                 credentialsList.add(credentials);
+             }
+@@ -98,67 +100,45 @@
+             ex.printStackTrace();
+             throw new RuntimeException(ex);
+         } finally {
+-            closeConnection(conn, stmt);
++            ConnectionPool.getInstance().releaseConnection(conn);
+         }
+     }
+ 
+     public void deleteUser(String login) {
+         Connection conn = null;
+-        PreparedStatement stmt = null;
++        PreparedStatement stmt;
+         try {
+-            conn = DriverManager.getConnection(props.getProperty("url"), props.getProperty("user"), props.getProperty("password"));
+-            stmt = conn.prepareStatement("DELETE FROM public.user WHERE login = ?");
++            conn = ConnectionPool.getInstance().getConnection();
++            stmt = conn.prepareStatement(DELETE_STATEMENT);
+             stmt.setString(1, login);
+             stmt.executeUpdate();
+         } catch (SQLException ex) {
+             ex.printStackTrace();
+             throw new RuntimeException(ex);
+         } finally {
+-            closeConnection(conn, stmt);
++            ConnectionPool.getInstance().releaseConnection(conn);
+         }
+     }
+ 
+-    public void insertUser(Credentials credentials) {
++    public void insertUser(User user) {
+         Connection conn = null;
+-        PreparedStatement stmt = null;
+-
++        PreparedStatement stmt;
+         try {
+-            conn = DriverManager.getConnection(props.getProperty("url"), props.getProperty("user"), props.getProperty("password"));
+-
++            conn = ConnectionPool.getInstance().getConnection();
+             MessageDigest md = MessageDigest.getInstance("MD5");
+-            md.update(credentials.getPassword().getBytes());
++            md.update(user.getPassword().getBytes());
+             byte[] digest = md.digest();
+             String hash = DatatypeConverter.printHexBinary(digest).toUpperCase();
+-
+-            stmt = conn.prepareStatement("INSERT INTO public.user (login, pass, user_role) VALUES (?,?,?)");
+-            stmt.setString(1, credentials.getLogin());
++            stmt = conn.prepareStatement(INSERT_STATEMENT);
++            stmt.setString(1, user.getLogin());
+             stmt.setString(2, hash);
+-            stmt.setInt(3, credentials.getRole().getId());
++            stmt.setInt(3, user.getRole().getId());
+             stmt.executeUpdate();
+         } catch (SQLException | NoSuchAlgorithmException ex) {
+             ex.printStackTrace();
+             throw new RuntimeException(ex);
+         } finally {
+-            closeConnection(conn, stmt);
+-        }
+-    }
+-
+-    private void closeConnection(Connection conn, PreparedStatement stmt) {
+-        try {
+-            if (stmt != null) {
+-                stmt.close();
+-            }
+-        } catch (Exception e) {
+-            e.printStackTrace();
+-            throw new RuntimeException(e);
+-        }
+-        try {
+-            if (conn != null) {
+-                conn.close();
+-            }
+-        } catch (Exception e) {
+-            e.printStackTrace();
+-            throw new RuntimeException(e);
++            ConnectionPool.getInstance().releaseConnection(conn);
+         }
+     }
+ 
+Index: src/main/java/com/dww/insurance/frame/AdminPanelFrame.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package com.dww.insurance.frame;\r\n\r\nimport com.dww.insurance.domain.Credentials;\r\nimport com.dww.insurance.domain.UserRole;\r\nimport com.dww.insurance.model.UserTableModel;\r\nimport com.dww.insurance.service.UserRepository;\r\n\r\nimport javax.swing.*;\r\nimport java.awt.*;\r\nimport java.awt.event.MouseAdapter;\r\nimport java.awt.event.MouseEvent;\r\nimport java.net.URI;\r\nimport java.util.ArrayList;\r\nimport java.util.Arrays;\r\nimport java.util.List;\r\n\r\npublic class AdminPanelFrame extends JPanel {\r\n\r\n    private final UserRepository userRepository;\r\n\r\n    private JTextField searchLoginTextField = new JTextField(22);\r\n    private JTextField newLoginTextField = new JTextField(22);\r\n    private JPasswordField newPassTextField = new JPasswordField(22);\r\n    private JButton deleteButton;\r\n    private JComboBox<UserRole> newRole;\r\n\r\n    private JComboBox<UserRole> userRoleComboBox;\r\n    private DefaultListModel<Credentials> listModel = new DefaultListModel<>();\r\n    private IApplication app;\r\n\r\n    private JPanel bottomPanel;\r\n    private Credentials credentials = new Credentials();\r\n    private JTable table;\r\n\r\n    public AdminPanelFrame(IApplication app) {\r\n        this.app = app;\r\n        userRepository = new UserRepository();\r\n        initialize();\r\n    }\r\n\r\n    public void initialize() {\r\n        removeAll();\r\n        setLayout(null);\r\n        initSearchResult();\r\n        initSearchTab();\r\n        initBottomPanel();\r\n        setVisible(true);\r\n        addUserTab();\r\n    }\r\n\r\n    private void initSearchResult() {\r\n        JSeparator searchResultSeparator = new JSeparator();\r\n        searchResultSeparator.setBounds(5, 50, 785, 2);\r\n        add(searchResultSeparator);\r\n\r\n        List<Credentials> tableData = new ArrayList<>();\r\n        UserTableModel tableModel = new UserTableModel(tableData);\r\n        table = new JTable(tableModel);\r\n        table.setAutoCreateRowSorter(true);\r\n        table.requestFocus();\r\n        table.addMouseListener(new MouseAdapter() {\r\n            @Override\r\n            public void mouseClicked(MouseEvent e) {\r\n                credentials = ((UserTableModel) table.getModel()).getValue(table.convertRowIndexToModel(table.getSelectedRow()));\r\n                deleteButton.setVisible(true);\r\n            }\r\n        });\r\n        JScrollPane scrollPaneTable = new JScrollPane(table);\r\n        scrollPaneTable.setBounds(20, 60, 750, 200);\r\n        add(scrollPaneTable);\r\n    }\r\n\r\n    private void initSearchTab() {\r\n        JPanel searchPanel = new JPanel(new FlowLayout());\r\n        searchPanel.setBounds(20, 5, 750, 40);\r\n\r\n        searchPanel.add(new JLabel(\"Login\"));\r\n\r\n        searchLoginTextField = new JTextField(10);\r\n        searchPanel.add(searchLoginTextField);\r\n\r\n        searchPanel.add(new JLabel(\"Role\"));\r\n\r\n        JPanel type = new JPanel(new BorderLayout());\r\n        userRoleComboBox = new JComboBox<>(UserRole.values());\r\n        userRoleComboBox.setSelectedItem(UserRole.ALL);\r\n        type.add(userRoleComboBox);\r\n        searchPanel.add(type);\r\n\r\n        JButton btnSearch = new JButton(\"Search\");\r\n        btnSearch.addActionListener(event -> search());\r\n        searchPanel.add(btnSearch);\r\n\r\n        JButton clearButton = new JButton(\"Clear\");\r\n        clearButton.addActionListener(e -> {\r\n            searchLoginTextField.setText(\"\");\r\n            userRoleComboBox.setSelectedItem(UserRole.ALL);\r\n            table.getSelectionModel().clearSelection();\r\n            deleteButton.setVisible(false);\r\n        });\r\n        searchPanel.add(clearButton);\r\n\r\n        JButton btnLogout = new JButton(\"Logout\");\r\n        btnLogout.addActionListener(e -> {\r\n            AdminPanelFrame.this.updateUI();\r\n            app.login();\r\n        });\r\n        searchPanel.add(btnLogout);\r\n\r\n\r\n        add(searchPanel);\r\n    }\r\n\r\n    private void initBottomPanel() {\r\n        bottomPanel = new JPanel(new FlowLayout());\r\n        bottomPanel.setBounds(90, 520, 200, 40);\r\n        bottomPanel.setVisible(true);\r\n\r\n        JButton addBtn = new JButton(\"Save\");\r\n        addBtn.addActionListener(event -> {\r\n            AdminPanelFrame.this.updateUI();\r\n            save();\r\n        });\r\n        deleteButton = new JButton(\"Delete\");\r\n        deleteButton.setBackground(new Color(250, 128, 114));\r\n        deleteButton.addActionListener(event -> delete());\r\n        deleteButton.setVisible(false);\r\n\r\n        bottomPanel.add(addBtn);\r\n        bottomPanel.add(deleteButton);\r\n        add(bottomPanel);\r\n    }\r\n\r\n    private void addUserTab() {\r\n        JPanel addUserTab = new JPanel();\r\n        addUserTab.setBounds(20, 280, 350, 100);\r\n        addUserTab.setLayout(new BoxLayout(addUserTab, BoxLayout.Y_AXIS));\r\n\r\n        JPanel title = new JPanel(new BorderLayout());\r\n        title.add(new JLabel(\"Add User\"), BorderLayout.WEST);\r\n\r\n        JPanel role = new JPanel(new BorderLayout());\r\n        newRole = new JComboBox<>();\r\n        newRole.addItem(UserRole.ADMIN);\r\n        newRole.addItem(UserRole.USER);\r\n        newRole.addItem(UserRole.UNAUTHORIZED);\r\n        newRole.setSelectedItem(UserRole.UNAUTHORIZED);\r\n        role.add(newRole);\r\n\r\n        addUserTab.add(title);\r\n        addUserTab.add(new JSeparator());\r\n        addUserTab.add(Box.createVerticalStrut(5));\r\n        addUserTab.add(\"Login\", createComponent(\"Login\", newLoginTextField));\r\n        addUserTab.add(\"Pass\", createComponent(\"Pass\", newPassTextField));\r\n        addUserTab.add(\"Role\", createComponent(\"Role\", role));\r\n\r\n        addUserTab.setVisible(true);\r\n        add(addUserTab);\r\n    }\r\n\r\n    private void save() {\r\n        if (empty(newLoginTextField, newLoginTextField) && newRole.getSelectedItem() == UserRole.UNAUTHORIZED) {\r\n            JOptionPane.showMessageDialog(this, \"Please fill all fields\", \"Error\", JOptionPane.ERROR_MESSAGE);\r\n        } else {\r\n            Credentials credentials = new Credentials();\r\n            credentials.setRole((UserRole) newRole.getSelectedItem());\r\n            credentials.setLogin(newLoginTextField.getText());\r\n            credentials.setPassword(String.valueOf(newPassTextField.getPassword()));\r\n            userRepository.insertUser(credentials);\r\n            clearNewUser();\r\n        }\r\n    }\r\n\r\n    private void clearNewUser() {\r\n        newLoginTextField.setText(\"\");\r\n        newPassTextField.setText(\"\");\r\n        newRole.setSelectedItem(UserRole.UNAUTHORIZED);\r\n    }\r\n\r\n    private void delete() {\r\n        if (credentials != null && credentials.getLogin() != null) {\r\n            int confirmDialog = JOptionPane.showConfirmDialog(\r\n                    this, \"Are you sure to delete it?\", \"Please confirm\", JOptionPane.YES_NO_OPTION);\r\n            if (confirmDialog == JOptionPane.YES_OPTION) {\r\n                userRepository.deleteUser(credentials.getLogin());\r\n                bottomPanel.setVisible(false);\r\n                initialize();\r\n                search();\r\n            }\r\n        }\r\n    }\r\n\r\n    private void search() {\r\n        deleteButton.setVisible(false);\r\n        List<Credentials> searchResults;\r\n        if (searchLoginTextField.getText().isEmpty()\r\n                && UserRole.valueOf(userRoleComboBox.getSelectedItem().toString()) == UserRole.ALL) {\r\n            searchResults = userRepository.findUsers();\r\n            searchResults.forEach(person -> listModel.addElement(person));\r\n            table.setModel(new UserTableModel(searchResults));\r\n        } else {\r\n            Credentials credentials = new Credentials(searchLoginTextField.getText(), null);\r\n            credentials.setRole(UserRole.valueOf(userRoleComboBox.getSelectedItem().toString()));\r\n            searchResults = userRepository.find(credentials);\r\n            searchResults.forEach(person -> listModel.addElement(person));\r\n            table.setModel(new UserTableModel(searchResults));\r\n        }\r\n        if (!searchResults.isEmpty()) {\r\n            bottomPanel.setVisible(true);\r\n        }\r\n    }\r\n\r\n    private JPanel createComponent(String label, Component textField) {\r\n        JPanel panel = new JPanel(new BorderLayout());\r\n        panel.add(new JLabel(label), BorderLayout.WEST);\r\n        panel.add(textField, BorderLayout.EAST);\r\n        return panel;\r\n    }\r\n\r\n    private boolean empty(JTextField... textFields) {\r\n        return Arrays.stream(textFields).map(JTextField::getText).anyMatch(String::isEmpty);\r\n    }\r\n\r\n}\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- src/main/java/com/dww/insurance/frame/AdminPanelFrame.java	(revision 20d40219615f6aa3583024938064f71ebc1bf38c)
++++ src/main/java/com/dww/insurance/frame/AdminPanelFrame.java	(date 1565457956809)
+@@ -1,22 +1,22 @@
+ package com.dww.insurance.frame;
+ 
+-import com.dww.insurance.domain.Credentials;
++import com.dww.insurance.domain.User;
+ import com.dww.insurance.domain.UserRole;
+ import com.dww.insurance.model.UserTableModel;
+-import com.dww.insurance.service.UserRepository;
++import com.dww.insurance.service.ServiceLocator;
++import com.dww.insurance.service.UserService;
+ 
+ import javax.swing.*;
+ import java.awt.*;
+ import java.awt.event.MouseAdapter;
+ import java.awt.event.MouseEvent;
+-import java.net.URI;
+ import java.util.ArrayList;
+ import java.util.Arrays;
+ import java.util.List;
+ 
+ public class AdminPanelFrame extends JPanel {
+ 
+-    private final UserRepository userRepository;
++    private UserService userService = ServiceLocator.getService(UserService.class);
+ 
+     private JTextField searchLoginTextField = new JTextField(22);
+     private JTextField newLoginTextField = new JTextField(22);
+@@ -25,16 +25,15 @@
+     private JComboBox<UserRole> newRole;
+ 
+     private JComboBox<UserRole> userRoleComboBox;
+-    private DefaultListModel<Credentials> listModel = new DefaultListModel<>();
+-    private IApplication app;
++    private DefaultListModel<User> listModel = new DefaultListModel<>();
++    private IMainFrame app;
+ 
+     private JPanel bottomPanel;
+-    private Credentials credentials = new Credentials();
++    private User credentials = new User();
+     private JTable table;
+ 
+-    public AdminPanelFrame(IApplication app) {
++    public AdminPanelFrame(IMainFrame app) {
+         this.app = app;
+-        userRepository = new UserRepository();
+         initialize();
+     }
+ 
+@@ -53,7 +52,7 @@
+         searchResultSeparator.setBounds(5, 50, 785, 2);
+         add(searchResultSeparator);
+ 
+-        List<Credentials> tableData = new ArrayList<>();
++        List<User> tableData = new ArrayList<>();
+         UserTableModel tableModel = new UserTableModel(tableData);
+         table = new JTable(tableModel);
+         table.setAutoCreateRowSorter(true);
+@@ -162,11 +161,11 @@
+         if (empty(newLoginTextField, newLoginTextField) && newRole.getSelectedItem() == UserRole.UNAUTHORIZED) {
+             JOptionPane.showMessageDialog(this, "Please fill all fields", "Error", JOptionPane.ERROR_MESSAGE);
+         } else {
+-            Credentials credentials = new Credentials();
++            User credentials = new User();
+             credentials.setRole((UserRole) newRole.getSelectedItem());
+             credentials.setLogin(newLoginTextField.getText());
+             credentials.setPassword(String.valueOf(newPassTextField.getPassword()));
+-            userRepository.insertUser(credentials);
++            userService.insertUser(credentials);
+             clearNewUser();
+         }
+     }
+@@ -182,7 +181,7 @@
+             int confirmDialog = JOptionPane.showConfirmDialog(
+                     this, "Are you sure to delete it?", "Please confirm", JOptionPane.YES_NO_OPTION);
+             if (confirmDialog == JOptionPane.YES_OPTION) {
+-                userRepository.deleteUser(credentials.getLogin());
++                userService.deleteUser(credentials.getLogin());
+                 bottomPanel.setVisible(false);
+                 initialize();
+                 search();
+@@ -192,16 +191,16 @@
+ 
+     private void search() {
+         deleteButton.setVisible(false);
+-        List<Credentials> searchResults;
++        List<User> searchResults;
+         if (searchLoginTextField.getText().isEmpty()
+                 && UserRole.valueOf(userRoleComboBox.getSelectedItem().toString()) == UserRole.ALL) {
+-            searchResults = userRepository.findUsers();
++            searchResults = userService.findUsers();
+             searchResults.forEach(person -> listModel.addElement(person));
+             table.setModel(new UserTableModel(searchResults));
+         } else {
+-            Credentials credentials = new Credentials(searchLoginTextField.getText(), null);
++            User credentials = new User(searchLoginTextField.getText(), null);
+             credentials.setRole(UserRole.valueOf(userRoleComboBox.getSelectedItem().toString()));
+-            searchResults = userRepository.find(credentials);
++            searchResults = userService.find(credentials);
+             searchResults.forEach(person -> listModel.addElement(person));
+             table.setModel(new UserTableModel(searchResults));
+         }
+Index: src/main/java/com/dww/insurance/service/DamageReportService.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- src/main/java/com/dww/insurance/service/DamageReportService.java	(date 1565457956890)
++++ src/main/java/com/dww/insurance/service/DamageReportService.java	(date 1565457956890)
+@@ -0,0 +1,40 @@
++package com.dww.insurance.service;
++
++import com.dww.insurance.domain.DamageReport;
++
++public class DamageReportService {
++
++    private DamageInfoService damageInfoService;
++    private DriverInfoService driverInfoService;
++    private VehicleInfoService vehicleInfoService;
++
++    public void insert(DamageReport damageReport) {
++        int driverId = driverInfoService.insert(damageReport.getDriverInfo());
++        int vehicleId = vehicleInfoService.insert(driverId, damageReport.getVehicleInfo());
++        damageInfoService.insert(vehicleId, damageReport.getDamageInfo());
++    }
++
++    public void update(DamageReport damageReport) {
++        driverInfoService.update(damageReport.getDriverInfo());
++        vehicleInfoService.update(damageReport.getVehicleInfo());
++        damageInfoService.update(damageReport.getVehicleInfo().getId(), damageReport.getDamageInfo());
++    }
++
++    public void delete(DamageReport damageReport) {
++        damageInfoService.delete(damageReport.getDamageInfo().getId());
++        vehicleInfoService.delete(damageReport.getVehicleInfo().getId());
++        driverInfoService.delete(damageReport.getDriverInfo().getId());
++    }
++
++    public void setDamageInfoService(DamageInfoService damageInfoService) {
++        this.damageInfoService = damageInfoService;
++    }
++
++    public void setDriverInfoService(DriverInfoService driverInfoService) {
++        this.driverInfoService = driverInfoService;
++    }
++
++    public void setVehicleInfoService(VehicleInfoService vehicleInfoService) {
++        this.vehicleInfoService = vehicleInfoService;
++    }
++}
+Index: src/main/java/com/dww/insurance/repository/VehicleInfoRepository.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- src/main/java/com/dww/insurance/repository/VehicleInfoRepository.java	(date 1565457118725)
++++ src/main/java/com/dww/insurance/repository/VehicleInfoRepository.java	(date 1565457118725)
+@@ -0,0 +1,78 @@
++package com.dww.insurance.repository;
++
++import com.dww.insurance.domain.VehicleInfo;
++
++import java.sql.Connection;
++import java.sql.PreparedStatement;
++import java.sql.ResultSet;
++import java.sql.SQLException;
++import java.sql.Statement;
++
++public class VehicleInfoRepository {
++
++    private static final String INSERT_STATEMENT =
++        "INSERT INTO vehicle (owner_id, type, body_number, model, number) VALUES (?,?,?,?,?)";
++    private static final String UPDATE_STATEMENT =
++        "UPDATE vehicle SET type = ?, body_number = ?, model = ?, number = ? WHERE id = ? AND owner_id = ?";
++    private static final String DELETE_STATEMENT = "DELETE FROM vehicle WHERE id = ?";
++
++    public int insert(int driverId, VehicleInfo vehicleInfo) {
++        Connection conn = null;
++        PreparedStatement stmt;
++        try {
++            conn = ConnectionPool.getInstance().getConnection();
++            stmt = conn.prepareStatement(INSERT_STATEMENT, Statement.RETURN_GENERATED_KEYS);
++            stmt.setInt(1, driverId);
++            stmt.setString(2, vehicleInfo.getType().name());
++            stmt.setString(3, vehicleInfo.getBodyId());
++            stmt.setString(4, vehicleInfo.getModel());
++            stmt.setString(5, vehicleInfo.getNumber());
++            stmt.executeUpdate();
++            ResultSet rs = stmt.getGeneratedKeys();
++            rs.next();
++            return rs.getInt(1);
++        } catch (SQLException ex) {
++            ex.printStackTrace();
++            throw new RuntimeException(ex);
++        } finally {
++            ConnectionPool.getInstance().releaseConnection(conn);
++        }
++    }
++
++    public void update(VehicleInfo vehicleInfo) {
++        Connection conn = null;
++        PreparedStatement stmt;
++        try {
++            conn = ConnectionPool.getInstance().getConnection();
++            stmt = conn.prepareStatement(UPDATE_STATEMENT);
++            stmt.setString(1, vehicleInfo.getType().name());
++            stmt.setString(2, vehicleInfo.getBodyId());
++            stmt.setString(3, vehicleInfo.getModel());
++            stmt.setString(4, vehicleInfo.getNumber());
++            stmt.setInt(5, vehicleInfo.getId());
++            stmt.setInt(6, vehicleInfo.getOwner_id());
++            stmt.executeUpdate();
++        } catch (SQLException ex) {
++            ex.printStackTrace();
++            throw new RuntimeException(ex);
++        } finally {
++            ConnectionPool.getInstance().releaseConnection(conn);
++        }
++    }
++
++    public void delete(int vehicleInfoId) {
++        Connection conn = null;
++        PreparedStatement stmt;
++        try {
++            conn = ConnectionPool.getInstance().getConnection();
++            stmt = conn.prepareStatement(DELETE_STATEMENT);
++            stmt.setInt(1, vehicleInfoId);
++            stmt.executeUpdate();
++        } catch (SQLException ex) {
++            ex.printStackTrace();
++            throw new RuntimeException(ex);
++        } finally {
++            ConnectionPool.getInstance().releaseConnection(conn);
++        }
++    }
++}
+Index: src/main/java/com/dww/insurance/domain/DamageReport.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package com.dww.insurance.domain;\r\n\r\npublic class DamageReport {\r\n\r\n    private DriverInfo driverInfo;\r\n    private VehicleInfo vehicleInfo;\r\n    private DamageInfo damageInfo;\r\n\r\n    public DamageReport() {\r\n        driverInfo = new DriverInfo();\r\n        vehicleInfo = new VehicleInfo();\r\n        damageInfo = new DamageInfo();\r\n        damageInfo.setDamage(new Damage(new boolean[13]));\r\n    }\r\n\r\n    public DamageReport(DriverInfo driverInfo, VehicleInfo vehicleInfo, DamageInfo damageInfo) {\r\n        this.driverInfo = driverInfo;\r\n        this.vehicleInfo = vehicleInfo;\r\n        this.damageInfo = damageInfo;\r\n    }\r\n\r\n    public DriverInfo getDriverInfo() {\r\n        return driverInfo;\r\n    }\r\n\r\n    public void setDriverInfo(DriverInfo driverInfo) {\r\n        this.driverInfo = driverInfo;\r\n    }\r\n\r\n    public VehicleInfo getVehicleInfo() {\r\n        return vehicleInfo;\r\n    }\r\n\r\n    public void setVehicleInfo(VehicleInfo vehicleInfo) {\r\n        this.vehicleInfo = vehicleInfo;\r\n    }\r\n\r\n    public DamageInfo getDamageInfo() {\r\n        return damageInfo;\r\n    }\r\n\r\n    public void setDamageInfo(DamageInfo damageInfo) {\r\n        this.damageInfo = damageInfo;\r\n    }\r\n}\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- src/main/java/com/dww/insurance/domain/DamageReport.java	(revision 20d40219615f6aa3583024938064f71ebc1bf38c)
++++ src/main/java/com/dww/insurance/domain/DamageReport.java	(date 1565457118824)
+@@ -9,8 +9,7 @@
+     public DamageReport() {
+         driverInfo = new DriverInfo();
+         vehicleInfo = new VehicleInfo();
+-        damageInfo = new DamageInfo();
+-        damageInfo.setDamage(new Damage(new boolean[13]));
++        damageInfo = new DamageInfo(new boolean[13]);
+     }
+ 
+     public DamageReport(DriverInfo driverInfo, VehicleInfo vehicleInfo, DamageInfo damageInfo) {
+Index: src/main/java/com/dww/insurance/domain/Credentials.java
+===================================================================
+--- src/main/java/com/dww/insurance/domain/Credentials.java	(revision 20d40219615f6aa3583024938064f71ebc1bf38c)
++++ src/main/java/com/dww/insurance/domain/User.java	(date 1565446910499)
+@@ -2,15 +2,15 @@
+ 
+ import java.util.Objects;
+ 
+-public class Credentials {
++public class User {
+     private String login;
+     private String password;
+     private UserRole role = UserRole.UNAUTHORIZED;
+ 
+-    public Credentials() {
++    public User() {
+     }
+ 
+-    public Credentials(String login, String password) {
++    public User(String login, String password) {
+         this.login = login;
+         this.password = password;
+     }
+@@ -42,7 +42,7 @@
+     public boolean equals(Object o) {
+         if (this == o) return true;
+         if (o == null || getClass() != o.getClass()) return false;
+-        Credentials that = (Credentials) o;
++        User that = (User) o;
+         return Objects.equals(login, that.login) &&
+                 Objects.equals(password, that.password) &&
+                 role == that.role;
+Index: src/main/java/com/dww/insurance/domain/DamageInfo.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package com.dww.insurance.domain;\r\n\r\nimport java.sql.Date;\r\n\r\npublic class DamageInfo {\r\n\r\n    private int id;\r\n    private Date date;\r\n    private Damage damage;\r\n\r\n    public int getId() {\r\n        return id;\r\n    }\r\n\r\n    public void setId(int id) {\r\n        this.id = id;\r\n    }\r\n\r\n    public Date getDate() {\r\n        return date;\r\n    }\r\n\r\n    public void setDate(Date date) {\r\n        this.date = date;\r\n    }\r\n\r\n    public Damage getDamage() {\r\n        return damage;\r\n    }\r\n\r\n    public void setDamage(Damage damage) {\r\n        this.damage = damage;\r\n    }\r\n}\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- src/main/java/com/dww/insurance/domain/DamageInfo.java	(revision 20d40219615f6aa3583024938064f71ebc1bf38c)
++++ src/main/java/com/dww/insurance/domain/DamageInfo.java	(date 1565457956909)
+@@ -6,7 +6,11 @@
+ 
+     private int id;
+     private Date date;
+-    private Damage damage;
++    private boolean[] damageZone;
++
++    public DamageInfo(boolean[] damageZone) {
++        this.damageZone = damageZone;
++    }
+ 
+     public int getId() {
+         return id;
+@@ -24,11 +28,12 @@
+         this.date = date;
+     }
+ 
+-    public Damage getDamage() {
+-        return damage;
++    public boolean[] getDamageZone() {
++        return damageZone;
+     }
+ 
+-    public void setDamage(Damage damage) {
+-        this.damage = damage;
++    public void setDamageZone(boolean[] damageZone) {
++        this.damageZone = damageZone;
+     }
++
+ }

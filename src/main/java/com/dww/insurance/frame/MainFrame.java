@@ -6,9 +6,9 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
-import java.awt.event.WindowListener;
 
-public class MainApp extends JFrame implements IApplication {
+public class MainFrame extends JFrame implements IMainFrame {
+
     CardLayout cardLayout;
     JPanel cardPanel;
     String name;
@@ -17,8 +17,7 @@ public class MainApp extends JFrame implements IApplication {
     EditFrame editFrame;
     AdminPanelFrame adminPanelFrame;
 
-
-    public MainApp(String uname) {
+    public MainFrame(String uname) {
         this.name = uname;
         initialize();
         start();
@@ -43,28 +42,28 @@ public class MainApp extends JFrame implements IApplication {
 
     @Override
     public void search() {
-        setTitle("Поиск");
+        setTitle("пїЅпїЅпїЅпїЅпїЅ");
         cardLayout.show(cardPanel, "Search");
         searchFrame.initialize();
     }
 
     @Override
     public void edit() {
-        setTitle("Создание");
+        setTitle("пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ");
         cardLayout.show(cardPanel, "Edit");
         editFrame.initialize(new DamageReport());
     }
 
     @Override
     public void edit(DamageReport report) {
-        setTitle("Изменение");
+        setTitle("пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ");
         cardLayout.show(cardPanel, "Edit");
         editFrame.initialize(report);
     }
 
     @Override
     public void adminPanel() {
-        setTitle("Панель Администратора");
+        setTitle("пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ");
         cardLayout.show(cardPanel, "Admin");
         adminPanelFrame.initialize();
     }
@@ -72,7 +71,7 @@ public class MainApp extends JFrame implements IApplication {
     @Override
     public void login() {
         add(cardPanel);
-        setTitle("Вход в систему");
+        setTitle("пїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ");
         cardLayout.show(cardPanel, "Login");
         userLogin.initialize();
     }
@@ -100,7 +99,7 @@ public class MainApp extends JFrame implements IApplication {
 
     private void exitAction() {
         int confirmDialog = JOptionPane.showConfirmDialog(
-                this, "Вы действительно хотите выйти?", "Подвердите", JOptionPane.YES_NO_OPTION);
+                this, "пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ?", "пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ", JOptionPane.YES_NO_OPTION);
         if (confirmDialog == JOptionPane.YES_OPTION) {
             System.exit(0);
         }

@@ -1,0 +1,19 @@
+Index: src/main/java/com/dww/insurance/domain/DamageReport.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package com.dww.insurance.domain;\r\n\r\npublic class DamageReport {\r\n\r\n    private DriverInfo driverInfo;\r\n    private VehicleInfo vehicleInfo;\r\n    private DamageInfo damageInfo;\r\n\r\n    public DamageReport() {\r\n    }\r\n\r\n    public DamageReport(DriverInfo driverInfo, VehicleInfo vehicleInfo, DamageInfo damageInfo) {\r\n        this.driverInfo = driverInfo;\r\n        this.vehicleInfo = vehicleInfo;\r\n        this.damageInfo = damageInfo;\r\n    }\r\n\r\n    public DriverInfo getDriverInfo() {\r\n        return driverInfo;\r\n    }\r\n\r\n    public void setDriverInfo(DriverInfo driverInfo) {\r\n        this.driverInfo = driverInfo;\r\n    }\r\n\r\n    public VehicleInfo getVehicleInfo() {\r\n        return vehicleInfo;\r\n    }\r\n\r\n    public void setVehicleInfo(VehicleInfo vehicleInfo) {\r\n        this.vehicleInfo = vehicleInfo;\r\n    }\r\n\r\n    public DamageInfo getDamageInfo() {\r\n        return damageInfo;\r\n    }\r\n\r\n    public void setDamageInfo(DamageInfo damageInfo) {\r\n        this.damageInfo = damageInfo;\r\n    }\r\n}\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- src/main/java/com/dww/insurance/domain/DamageReport.java	(revision 47a2549de8fd3524411bd4b95a89e593902189c5)
++++ src/main/java/com/dww/insurance/domain/DamageReport.java	(date 1558884247603)
+@@ -7,6 +7,9 @@
+     private DamageInfo damageInfo;
+ 
+     public DamageReport() {
++        driverInfo = new DriverInfo();
++        vehicleInfo = new VehicleInfo();
++        damageInfo = new DamageInfo();
+     }
+ 
+     public DamageReport(DriverInfo driverInfo, VehicleInfo vehicleInfo, DamageInfo damageInfo) {
