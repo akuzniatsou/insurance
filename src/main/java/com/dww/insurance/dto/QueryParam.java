@@ -1,4 +1,4 @@
-package com.dww.insurance.domain;
+package com.dww.insurance.dto;
 
 public class QueryParam {
     private final String surname;

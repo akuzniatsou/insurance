@@ -1,6 +1,6 @@
 package com.dww.insurance.repository;
 
-import com.dww.insurance.service.AppProperties;
+import com.dww.insurance.util.AppProperties;
 
 import java.sql.Connection;
 import java.sql.DriverManager;

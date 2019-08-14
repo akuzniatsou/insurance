@@ -1,5 +1,8 @@
 package com.dww.insurance.domain;
 
+import java.util.Objects;
+import java.util.StringJoiner;
+
 public class VehicleInfo {
 
     private int id;
@@ -55,5 +58,39 @@ public class VehicleInfo {
 
     public void setOwner_id(int owner_id) {
         this.owner_id = owner_id;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        VehicleInfo that = (VehicleInfo) o;
+        return id == that.id &&
+            owner_id == that.owner_id &&
+            Objects.equals(model, that.model) &&
+            type == that.type &&
+            Objects.equals(number, that.number) &&
+            Objects.equals(bodyId, that.bodyId);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, owner_id, model, type, number, bodyId);
+    }
+
+    @Override
+    public String toString() {
+        return new StringJoiner(", ", VehicleInfo.class.getSimpleName() + "[", "]")
+            .add("id=" + id)
+            .add("owner_id=" + owner_id)
+            .add("model='" + model + "'")
+            .add("type=" + type)
+            .add("number='" + number + "'")
+            .add("bodyId='" + bodyId + "'")
+            .toString();
     }
 }

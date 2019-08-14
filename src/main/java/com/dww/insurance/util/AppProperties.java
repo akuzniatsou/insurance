@@ -1,4 +1,4 @@
-package com.dww.insurance.service;
+package com.dww.insurance.util;
 
 import java.io.FileInputStream;
 import java.util.Properties;

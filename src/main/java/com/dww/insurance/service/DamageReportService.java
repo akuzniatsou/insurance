@@ -1,6 +1,6 @@
 package com.dww.insurance.service;
 
-import com.dww.insurance.domain.DamageReport;
+import com.dww.insurance.dto.DamageReport;
 
 public class DamageReportService {
 

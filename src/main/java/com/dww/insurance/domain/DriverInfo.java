@@ -1,5 +1,8 @@
 package com.dww.insurance.domain;
 
+import java.util.Objects;
+import java.util.StringJoiner;
+
 public class DriverInfo {
 
     private int id;
@@ -64,5 +67,41 @@ public class DriverInfo {
 
     public void setId(int id) {
         this.id = id;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        DriverInfo that = (DriverInfo) o;
+        return id == that.id &&
+            Objects.equals(surname, that.surname) &&
+            Objects.equals(name, that.name) &&
+            Objects.equals(lastName, that.lastName) &&
+            Objects.equals(passId, that.passId) &&
+            Objects.equals(address, that.address) &&
+            Objects.equals(phone, that.phone);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, surname, name, lastName, passId, address, phone);
+    }
+
+    @Override
+    public String toString() {
+        return new StringJoiner(", ", DriverInfo.class.getSimpleName() + "[", "]")
+            .add("id=" + id)
+            .add("surname='" + surname + "'")
+            .add("name='" + name + "'")
+            .add("lastName='" + lastName + "'")
+            .add("passId='" + passId + "'")
+            .add("address='" + address + "'")
+            .add("phone='" + phone + "'")
+            .toString();
     }
 }

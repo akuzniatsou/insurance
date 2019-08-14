@@ -1,6 +1,7 @@
 package com.dww.insurance.domain;
 
 import java.util.Objects;
+import java.util.StringJoiner;
 
 public class User {
     private String login;
@@ -51,5 +52,14 @@ public class User {
     @Override
     public int hashCode() {
         return Objects.hash(login, password, role);
+    }
+
+    @Override
+    public String toString() {
+        return new StringJoiner(", ", User.class.getSimpleName() + "[", "]")
+            .add("login='" + login + "'")
+            .add("password='" + password + "'")
+            .add("role=" + role)
+            .toString();
     }
 }

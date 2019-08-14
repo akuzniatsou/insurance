@@ -1,6 +1,6 @@
 package com.dww.insurance.model;
 
-import com.dww.insurance.domain.SearchResult;
+import com.dww.insurance.dto.SearchResult;
 
 import javax.swing.table.AbstractTableModel;
 import java.util.List;

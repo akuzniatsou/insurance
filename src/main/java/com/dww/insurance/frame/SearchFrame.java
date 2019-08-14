@@ -1,11 +1,10 @@
 package com.dww.insurance.frame;
 
 import com.dww.insurance.domain.DamageInfo;
-import com.dww.insurance.domain.DamageReport;
-import com.dww.insurance.domain.QueryParam;
-import com.dww.insurance.domain.SearchResult;
+import com.dww.insurance.dto.DamageReport;
+import com.dww.insurance.dto.QueryParam;
+import com.dww.insurance.dto.SearchResult;
 import com.dww.insurance.model.SearchResultTableModel;
-import com.dww.insurance.repository.DamageInfoRepository;
 import com.dww.insurance.repository.SearchRepository;
 import com.dww.insurance.service.DamageReportService;
 import com.dww.insurance.service.ServiceLocator;

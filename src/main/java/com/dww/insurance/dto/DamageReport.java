@@ -1,4 +1,8 @@
-package com.dww.insurance.domain;
+package com.dww.insurance.dto;
+
+import com.dww.insurance.domain.DamageInfo;
+import com.dww.insurance.domain.DriverInfo;
+import com.dww.insurance.domain.VehicleInfo;
 
 public class DamageReport {
 
