@@ -14,7 +14,11 @@ import com.dww.insurance.service.ServiceLocator;
 import com.dww.insurance.service.UserService;
 import com.dww.insurance.service.VehicleInfoService;
 
+import java.util.ResourceBundle;
+
 public class InsuranceApp {
+
+    private static final ResourceBundle MESSAGES = ResourceBundle.getBundle("messages");
 
     public static void main(String[] args) {
         initServices();
@@ -51,5 +55,9 @@ public class InsuranceApp {
         locator.registerService(DamageReportService.class, damageReportService);
 
         ServiceLocator.setLocator(locator);
+    }
+
+    public static String getMessage(String placeholder) {
+        return MESSAGES.getString(placeholder);
     }
 }

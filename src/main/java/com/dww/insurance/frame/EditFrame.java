@@ -1,5 +1,6 @@
 package com.dww.insurance.frame;
 
+import com.dww.insurance.InsuranceApp;
 import com.dww.insurance.domain.DamageInfo;
 import com.dww.insurance.dto.DamageReport;
 import com.dww.insurance.domain.DriverInfo;
@@ -34,7 +35,7 @@ import javax.swing.JSeparator;
 import javax.swing.JTextField;
 
 
-public class EditFrame extends JPanel {
+class EditFrame extends JPanel {
 
     private static final int BASE_LINE = 180;
     private static final int BASE_HEIGHT = 20;
@@ -72,12 +73,12 @@ public class EditFrame extends JPanel {
 
     private DamageReport report;
 
-    public EditFrame(IMainFrame app) {
+    EditFrame(IMainFrame app) {
         this.app = app;
         initialize(new DamageReport());
     }
 
-    public void initialize(DamageReport report) {
+    void initialize(DamageReport report) {
         removeAll();
         setLayout(null);
         this.report = report;
@@ -95,15 +96,15 @@ public class EditFrame extends JPanel {
         driverInfoPanel.setLayout(new BoxLayout(driverInfoPanel, BoxLayout.Y_AXIS));
 
         JPanel title = new JPanel(new BorderLayout());
-        title.add(new JLabel("� ��������"), BorderLayout.WEST);
+        title.add(new JLabel(InsuranceApp.getMessage("label_driver_info")), BorderLayout.WEST);
 
         driverInfoPanel.add(title);
         driverInfoPanel.add(new JSeparator());
-        driverInfoPanel.add("Surname", createComponent("�������", report.getDriverInfo().getLastName(), lastNameTextField));
-        driverInfoPanel.add("Name", createComponent("���", report.getDriverInfo().getName(), nameTextField));
-        driverInfoPanel.add(createComponent("�����", report.getDriverInfo().getAddress(), addressTextField));
-        driverInfoPanel.add(createComponent("�������", report.getDriverInfo().getPhone(), phoneTextField));
-        driverInfoPanel.add(createComponent("ID ��������", report.getDriverInfo().getPassId(), passIdTextField));
+        driverInfoPanel.add("Surname", createComponent(InsuranceApp.getMessage("label_driver_surname"), report.getDriverInfo().getLastName(), lastNameTextField));
+        driverInfoPanel.add("Name", createComponent(InsuranceApp.getMessage("label_driver_name"), report.getDriverInfo().getName(), nameTextField));
+        driverInfoPanel.add(createComponent(InsuranceApp.getMessage("label_driver_address"), report.getDriverInfo().getAddress(), addressTextField));
+        driverInfoPanel.add(createComponent(InsuranceApp.getMessage("label_driver_phone"), report.getDriverInfo().getPhone(), phoneTextField));
+        driverInfoPanel.add(createComponent(InsuranceApp.getMessage("label_driver_pass_id"), report.getDriverInfo().getPassId(), passIdTextField));
         driverInfoPanel.setVisible(true);
         add(driverInfoPanel);
     }
@@ -114,7 +115,7 @@ public class EditFrame extends JPanel {
         panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
 
         JPanel title = new JPanel(new BorderLayout());
-        title.add(new JLabel("� �/�"), BorderLayout.WEST);
+        title.add(new JLabel(InsuranceApp.getMessage("label_vehicle_info")), BorderLayout.WEST);
 
         JPanel type = new JPanel(new BorderLayout());
         vehicleTypeComboBox = new JComboBox<>(VehicleType.values());
@@ -123,10 +124,10 @@ public class EditFrame extends JPanel {
 
         panel.add(title);
         panel.add(new JSeparator());
-        panel.add(createComponent("������", report.getVehicleInfo().getModel(), vehicleModelTextField));
+        panel.add(createComponent(InsuranceApp.getMessage("label_vehicle_model"), report.getVehicleInfo().getModel(), vehicleModelTextField));
         panel.add(type);
-        panel.add(createComponent("�����", report.getVehicleInfo().getNumber(), vehicleNumberTextField));
-        panel.add(createComponent("ID ������", report.getVehicleInfo().getBodyId(), vehicleBodyIdTextField));
+        panel.add(createComponent(InsuranceApp.getMessage("label_vehicle_number"), report.getVehicleInfo().getNumber(), vehicleNumberTextField));
+        panel.add(createComponent(InsuranceApp.getMessage("label_vehicle_body_id"), report.getVehicleInfo().getBodyId(), vehicleBodyIdTextField));
 
         panel.setVisible(true);
         add(panel);
@@ -141,7 +142,7 @@ public class EditFrame extends JPanel {
     }
 
     private void initDamageInfoTab() {
-        JLabel lblDamage = new JLabel("�����������:");
+        JLabel lblDamage = new JLabel(InsuranceApp.getMessage("label_damage_info"));
         lblDamage.setBounds(20, BASE_LINE, 100, BASE_HEIGHT);
         add(lblDamage);
 
@@ -222,16 +223,16 @@ public class EditFrame extends JPanel {
         JPanel bottomPanel = new JPanel(new FlowLayout());
         bottomPanel.setBounds(455, 520, 400, 40);
 
-        JButton saveButton = new JButton("���������");
+        JButton saveButton = new JButton(InsuranceApp.getMessage("label_save"));
         saveButton.addActionListener(saveDamageReport());
 
-        JButton cancelButton = new JButton("������");
+        JButton cancelButton = new JButton(InsuranceApp.getMessage("label_cancel"));
         cancelButton.addActionListener(e -> {
             EditFrame.this.updateUI();
             app.search();
         });
 
-        JButton clearButton = new JButton("��������");
+        JButton clearButton = new JButton(InsuranceApp.getMessage("label_clear"));
         clearButton.addActionListener(e -> {
             EditFrame.this.updateUI();
             app.edit();
@@ -247,7 +248,8 @@ public class EditFrame extends JPanel {
         DriverInfo driverInfo = new DriverInfo();
         if (empty(nameTextField, lastNameTextField, addressTextField, phoneTextField, passIdTextField,
             vehicleBodyIdTextField, vehicleNumberTextField, vehicleModelTextField)) {
-            JOptionPane.showMessageDialog(this, "��������� ��� ����", "������", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(this, InsuranceApp.getMessage("notification_validation_failed"),
+                InsuranceApp.getMessage("notification_label_validation_failed"), JOptionPane.ERROR_MESSAGE);
             return null;
         }
         driverInfo.setId(report == null ? 0 : report.getDriverInfo().getId());

@@ -1,5 +1,6 @@
 package com.dww.insurance.frame;
 
+import com.dww.insurance.InsuranceApp;
 import com.dww.insurance.domain.User;
 import com.dww.insurance.domain.UserRole;
 import com.dww.insurance.model.UserTableModel;
@@ -14,7 +15,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-public class AdminPanelFrame extends JPanel {
+class AdminPanelFrame extends JPanel {
 
     private UserService userService = ServiceLocator.getService(UserService.class);
 
@@ -32,12 +33,12 @@ public class AdminPanelFrame extends JPanel {
     private User credentials = new User();
     private JTable table;
 
-    public AdminPanelFrame(IMainFrame app) {
+    AdminPanelFrame(IMainFrame app) {
         this.app = app;
         initialize();
     }
 
-    public void initialize() {
+    void initialize() {
         removeAll();
         setLayout(null);
         initSearchResult();
@@ -73,12 +74,12 @@ public class AdminPanelFrame extends JPanel {
         JPanel searchPanel = new JPanel(new FlowLayout());
         searchPanel.setBounds(20, 5, 750, 40);
 
-        searchPanel.add(new JLabel("�����"));
+        searchPanel.add(new JLabel(InsuranceApp.getMessage("label_login")));
 
         searchLoginTextField = new JTextField(10);
         searchPanel.add(searchLoginTextField);
 
-        searchPanel.add(new JLabel("����"));
+        searchPanel.add(new JLabel(InsuranceApp.getMessage("label_role")));
 
         JPanel type = new JPanel(new BorderLayout());
         userRoleComboBox = new JComboBox<>(UserRole.values());
@@ -86,11 +87,11 @@ public class AdminPanelFrame extends JPanel {
         type.add(userRoleComboBox);
         searchPanel.add(type);
 
-        JButton btnSearch = new JButton("�����");
+        JButton btnSearch = new JButton(InsuranceApp.getMessage("label_search"));
         btnSearch.addActionListener(event -> search());
         searchPanel.add(btnSearch);
 
-        JButton clearButton = new JButton("��������");
+        JButton clearButton = new JButton(InsuranceApp.getMessage("label_clear"));
         clearButton.addActionListener(e -> {
             searchLoginTextField.setText("");
             userRoleComboBox.setSelectedItem(UserRole.ALL);
@@ -99,7 +100,7 @@ public class AdminPanelFrame extends JPanel {
         });
         searchPanel.add(clearButton);
 
-        JButton btnLogout = new JButton("�����");
+        JButton btnLogout = new JButton(InsuranceApp.getMessage("label_logout"));
         btnLogout.addActionListener(e -> {
             AdminPanelFrame.this.updateUI();
             app.login();
@@ -115,12 +116,12 @@ public class AdminPanelFrame extends JPanel {
         bottomPanel.setBounds(90, 520, 200, 40);
         bottomPanel.setVisible(true);
 
-        JButton addBtn = new JButton("���������");
+        JButton addBtn = new JButton(InsuranceApp.getMessage("label_save"));
         addBtn.addActionListener(event -> {
             AdminPanelFrame.this.updateUI();
             save();
         });
-        deleteButton = new JButton("�������");
+        deleteButton = new JButton(InsuranceApp.getMessage("label_delete"));
         deleteButton.setBackground(new Color(250, 128, 114));
         deleteButton.addActionListener(event -> delete());
         deleteButton.setVisible(false);
@@ -136,7 +137,7 @@ public class AdminPanelFrame extends JPanel {
         addUserTab.setLayout(new BoxLayout(addUserTab, BoxLayout.Y_AXIS));
 
         JPanel title = new JPanel(new BorderLayout());
-        title.add(new JLabel("�������� ������������"), BorderLayout.WEST);
+        title.add(new JLabel(InsuranceApp.getMessage("label_add_user")), BorderLayout.WEST);
 
         JPanel role = new JPanel(new BorderLayout());
         newRole = new JComboBox<>();
@@ -149,9 +150,9 @@ public class AdminPanelFrame extends JPanel {
         addUserTab.add(title);
         addUserTab.add(new JSeparator());
         addUserTab.add(Box.createVerticalStrut(5));
-        addUserTab.add("Login", createComponent("�����", newLoginTextField));
-        addUserTab.add("Pass", createComponent("������", newPassTextField));
-        addUserTab.add("Role", createComponent("����", role));
+        addUserTab.add("Login", createComponent(InsuranceApp.getMessage("label_login"), newLoginTextField));
+        addUserTab.add("Pass", createComponent(InsuranceApp.getMessage("label_pass"), newPassTextField));
+        addUserTab.add("Role", createComponent(InsuranceApp.getMessage("label_role"), role));
 
         addUserTab.setVisible(true);
         add(addUserTab);
@@ -159,7 +160,8 @@ public class AdminPanelFrame extends JPanel {
 
     private void save() {
         if (empty(newLoginTextField, newLoginTextField) && newRole.getSelectedItem() == UserRole.UNAUTHORIZED) {
-            JOptionPane.showMessageDialog(this, "���������� ��������� ��� ����", "������", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(this, InsuranceApp.getMessage("notification_validation_failed"),
+                InsuranceApp.getMessage("notification_label_validation_failed"), JOptionPane.ERROR_MESSAGE);
         } else {
             User credentials = new User();
             credentials.setRole((UserRole) newRole.getSelectedItem());
@@ -179,7 +181,8 @@ public class AdminPanelFrame extends JPanel {
     private void delete() {
         if (credentials != null && credentials.getLogin() != null) {
             int confirmDialog = JOptionPane.showConfirmDialog(
-                    this, "�� ������������� ������ ������� ���?", "�����������", JOptionPane.YES_NO_OPTION);
+                    this, InsuranceApp.getMessage("notification_delete"),
+                InsuranceApp.getMessage("notification_label_error"), JOptionPane.YES_NO_OPTION);
             if (confirmDialog == JOptionPane.YES_OPTION) {
                 userService.deleteUser(credentials.getLogin());
                 bottomPanel.setVisible(false);

@@ -1,5 +1,6 @@
 package com.dww.insurance.frame;
 
+import com.dww.insurance.InsuranceApp;
 import com.dww.insurance.dto.DamageReport;
 
 import javax.swing.*;
@@ -9,13 +10,13 @@ import java.awt.event.WindowEvent;
 
 public class MainFrame extends JFrame implements IMainFrame {
 
-    CardLayout cardLayout;
-    JPanel cardPanel;
-    String name;
-    UserLogin userLogin;
-    SearchFrame searchFrame;
-    EditFrame editFrame;
-    AdminPanelFrame adminPanelFrame;
+    private CardLayout cardLayout;
+    private JPanel cardPanel;
+    private String name;
+    private UserLogin userLogin;
+    private SearchFrame searchFrame;
+    private EditFrame editFrame;
+    private AdminPanelFrame adminPanelFrame;
 
     public MainFrame(String uname) {
         this.name = uname;
@@ -42,28 +43,28 @@ public class MainFrame extends JFrame implements IMainFrame {
 
     @Override
     public void search() {
-        setTitle("�����");
+        setTitle(InsuranceApp.getMessage("label_search"));
         cardLayout.show(cardPanel, "Search");
         searchFrame.initialize();
     }
 
     @Override
     public void edit() {
-        setTitle("��������");
+        setTitle(InsuranceApp.getMessage("label_create"));
         cardLayout.show(cardPanel, "Edit");
         editFrame.initialize(new DamageReport());
     }
 
     @Override
     public void edit(DamageReport report) {
-        setTitle("���������");
+        setTitle(InsuranceApp.getMessage("label_edit"));
         cardLayout.show(cardPanel, "Edit");
         editFrame.initialize(report);
     }
 
     @Override
     public void adminPanel() {
-        setTitle("������ ��������������");
+        setTitle(InsuranceApp.getMessage("label_admin_page"));
         cardLayout.show(cardPanel, "Admin");
         adminPanelFrame.initialize();
     }
@@ -71,7 +72,7 @@ public class MainFrame extends JFrame implements IMainFrame {
     @Override
     public void login() {
         add(cardPanel);
-        setTitle("���� � �������");
+        setTitle(InsuranceApp.getMessage("label_login"));
         cardLayout.show(cardPanel, "Login");
         userLogin.initialize();
     }
@@ -99,7 +100,8 @@ public class MainFrame extends JFrame implements IMainFrame {
 
     private void exitAction() {
         int confirmDialog = JOptionPane.showConfirmDialog(
-                this, "�� ������������� ������ �����?", "����������", JOptionPane.YES_NO_OPTION);
+                this, InsuranceApp.getMessage("notification_quit"),
+            InsuranceApp.getMessage("notification_label_confirm"), JOptionPane.YES_NO_OPTION);
         if (confirmDialog == JOptionPane.YES_OPTION) {
             System.exit(0);
         }

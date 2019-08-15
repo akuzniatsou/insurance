@@ -1,5 +1,6 @@
 package com.dww.insurance.frame;
 
+import com.dww.insurance.InsuranceApp;
 import com.dww.insurance.domain.DamageInfo;
 import com.dww.insurance.dto.DamageReport;
 import com.dww.insurance.dto.QueryParam;
@@ -19,7 +20,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-public class SearchFrame extends JPanel {
+class SearchFrame extends JPanel {
 
     private static final int BASE_LINE = 180;
     private static final int BASE_WIDTH = 240;
@@ -75,12 +76,12 @@ public class SearchFrame extends JPanel {
         bottomPanel.setBounds(75, 515, 200, 40);
         bottomPanel.setVisible(false);
 
-        JButton editBtn = new JButton("��������");
+        JButton editBtn = new JButton(InsuranceApp.getMessage("label_edit"));
         editBtn.addActionListener(event -> {
             SearchFrame.this.updateUI();
             app.edit(report);
         });
-        JButton deleteButton = new JButton("�������");
+        JButton deleteButton = new JButton(InsuranceApp.getMessage("label_delete"));
         deleteButton.setBackground(new Color(250, 128, 114));
         deleteButton.addActionListener(event -> delete());
 
@@ -90,7 +91,7 @@ public class SearchFrame extends JPanel {
     }
 
     private void initDamageInfoTab() {
-        JLabel lblDamage = new JLabel("�����������:");
+        JLabel lblDamage = new JLabel(InsuranceApp.getMessage("label_damage_info"));
         lblDamage.setBounds(260, BASE_LINE, 100, BASE_HEIGHT);
         add(lblDamage);
 
@@ -149,7 +150,7 @@ public class SearchFrame extends JPanel {
     }
 
     private void initDriverInfoTab() {
-        JLabel driverInfoLabel = new JLabel("� �������� :");
+        JLabel driverInfoLabel = new JLabel(InsuranceApp.getMessage("label_driver_info"));
         driverInfoLabel.setBounds(20, BASE_LINE, 240, BASE_HEIGHT);
         add(driverInfoLabel);
 
@@ -179,7 +180,7 @@ public class SearchFrame extends JPanel {
     }
 
     private void initVehicleTab() {
-        JLabel lblVehicleInfo = new JLabel("� �/�:");
+        JLabel lblVehicleInfo = new JLabel(InsuranceApp.getMessage("label_vehicle_info"));
         lblVehicleInfo.setBounds(20, 340, BASE_WIDTH, 20);
         add(lblVehicleInfo);
 
@@ -204,33 +205,33 @@ public class SearchFrame extends JPanel {
         JPanel searchPanel = new JPanel(new FlowLayout());
         searchPanel.setBounds(2, 5, 780, 40);
 
-        searchPanel.add(new JLabel("�������"));
+        searchPanel.add(new JLabel(InsuranceApp.getMessage("label_driver_surname")));
 
         surnameTextField = new JTextField(7);
         searchPanel.add(surnameTextField);
 
-        searchPanel.add(new JLabel("���.�"));
+        searchPanel.add(new JLabel(InsuranceApp.getMessage("label_driver_owner_id")));
 
         ownerTextField = new JTextField(7);
         searchPanel.add(ownerTextField);
 
-        searchPanel.add(new JLabel("� ������"));
+        searchPanel.add(new JLabel(InsuranceApp.getMessage("label_vehicle_body_id")));
 
         bodyTextField = new JTextField(7);
         searchPanel.add(bodyTextField);
 
-        JButton btnSearch = new JButton("�����");
+        JButton btnSearch = new JButton(InsuranceApp.getMessage("label_search"));
         btnSearch.addActionListener(event -> search());
         searchPanel.add(btnSearch);
 
-        JButton btnAdd = new JButton("��������");
+        JButton btnAdd = new JButton(InsuranceApp.getMessage("label_add"));
         btnAdd.addActionListener(e -> {
             SearchFrame.this.updateUI();
             app.edit();
         });
         searchPanel.add(btnAdd);
 
-        JButton clearButton = new JButton("��������");
+        JButton clearButton = new JButton(InsuranceApp.getMessage("label_clear"));
         clearButton.addActionListener(e -> {
             surnameTextField.setText("");
             ownerTextField.setText("");
@@ -238,7 +239,7 @@ public class SearchFrame extends JPanel {
         });
         searchPanel.add(clearButton);
 
-        JButton btnLogout = new JButton("�����");
+        JButton btnLogout = new JButton(InsuranceApp.getMessage("label_logout"));
         btnLogout.addActionListener(e -> {
             SearchFrame.this.updateUI();
             app.login();
@@ -266,7 +267,8 @@ public class SearchFrame extends JPanel {
     private void delete() {
         if (report != null) {
             int confirmDialog = JOptionPane.showConfirmDialog(
-                this, "������������� �������?", "�������������", JOptionPane.YES_NO_OPTION);
+                this, InsuranceApp.getMessage("notification_delete"),
+                InsuranceApp.getMessage("notification_label_confirm"), JOptionPane.YES_NO_OPTION);
             if (confirmDialog == JOptionPane.YES_OPTION) {
                 damageReportService.delete(report);
                 bottomPanel.setVisible(false);
@@ -282,16 +284,16 @@ public class SearchFrame extends JPanel {
     }
 
     private void populateDamageReport(DamageReport report) {
-        driverPassId.setText("<html>����� �������� : " + (report == null ? "" : "<br>" + report.getDriverInfo().getPassId())+"</html>");
-        driverSurname.setText("������� : " + (report == null ? "" : "\n" + report.getDriverInfo().getLastName()));
-        driverName.setText("��� : " + (report == null ? "" : report.getDriverInfo().getName()));
-        driverAddress.setText("����� : " + (report == null ? "" : "\n" + report.getDriverInfo().getAddress()));
-        driverPhone.setText("������� : " + (report == null ? "" : "\n" + report.getDriverInfo().getPhone()));
+        driverPassId.setText("<html>"+ InsuranceApp.getMessage("label_driver_pass_id") + " : " + (report == null ? "" : "<br>" + report.getDriverInfo().getPassId())+"</html>");
+        driverSurname.setText(InsuranceApp.getMessage("label_driver_surname") + " : " + (report == null ? "" : "\n" + report.getDriverInfo().getLastName()));
+        driverName.setText(InsuranceApp.getMessage("label_driver_name") + " : " + (report == null ? "" : report.getDriverInfo().getName()));
+        driverAddress.setText(InsuranceApp.getMessage("label_driver_address") + " : " + (report == null ? "" : "\n" + report.getDriverInfo().getAddress()));
+        driverPhone.setText(InsuranceApp.getMessage("label_driver_phone") + " : " + (report == null ? "" : "\n" + report.getDriverInfo().getPhone()));
 
-        vehicleModel.setText("������ : " + (report == null ? "" : "\n" + report.getVehicleInfo().getModel()));
-        vehicleType.setText("��� : " + (report == null ? "" : "\n" + report.getVehicleInfo().getType()));
-        vehicleNumber.setText("����� : " + (report == null ? "" : "\n" + report.getVehicleInfo().getNumber()));
-        vehicleBodyId.setText("<html>����� ������ : " + (report == null ? "" : "<br>" + report.getVehicleInfo().getBodyId())+"</html>");
+        vehicleModel.setText(InsuranceApp.getMessage("label_vehicle_model") + " : " + (report == null ? "" : "\n" + report.getVehicleInfo().getModel()));
+        vehicleType.setText(InsuranceApp.getMessage("label_vehicle_type") + " : " + (report == null ? "" : "\n" + report.getVehicleInfo().getType()));
+        vehicleNumber.setText(InsuranceApp.getMessage("label_vehicle_number") + " : " + (report == null ? "" : "\n" + report.getVehicleInfo().getNumber()));
+        vehicleBodyId.setText("<html>"+ InsuranceApp.getMessage("label_vehicle_body_id") + " : " + (report == null ? "" : "<br>" + report.getVehicleInfo().getBodyId())+"</html>");
         damageZone(report == null ? null : report.getDamageInfo());
         if (report != null) {
             bottomPanel.setVisible(true);

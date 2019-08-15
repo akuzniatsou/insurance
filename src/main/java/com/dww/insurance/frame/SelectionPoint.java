@@ -8,7 +8,7 @@ public class SelectionPoint implements Icon {
 
     private Color color;
 
-    public SelectionPoint(boolean selected) {
+    SelectionPoint(boolean selected) {
         if (selected) {
             color = Color.red;
         } else {
@@ -16,7 +16,7 @@ public class SelectionPoint implements Icon {
         }
     }
 
-    public void switchColor() {
+    void switchColor() {
         if (color == Color.red) {
             color = Color.green;
         } else {

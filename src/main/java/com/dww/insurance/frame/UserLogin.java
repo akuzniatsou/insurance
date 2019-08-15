@@ -1,5 +1,6 @@
 package com.dww.insurance.frame;
 
+import com.dww.insurance.InsuranceApp;
 import com.dww.insurance.domain.User;
 import com.dww.insurance.service.ServiceLocator;
 import com.dww.insurance.service.UserService;
@@ -8,17 +9,17 @@ import javax.swing.*;
 import java.awt.*;
 
 
-public class UserLogin extends JPanel {
+class UserLogin extends JPanel {
 
     private UserService userService = ServiceLocator.getService(UserService.class);
     private IMainFrame app;
 
-    public UserLogin(IMainFrame app) {
+    UserLogin(IMainFrame app) {
         this.app = app;
         initialize();
     }
 
-    public void initialize() {
+    void initialize() {
         removeAll();
         setLayout(new GridBagLayout());
 
@@ -28,13 +29,13 @@ public class UserLogin extends JPanel {
 
         JPanel panel = new JPanel();
         panel.setLayout(new GridLayout(3, 2, 5, 5));
-        JLabel usernameLabel = new JLabel("������������");
-        JLabel passwordLabel = new JLabel("������");
+        JLabel usernameLabel = new JLabel(InsuranceApp.getMessage("label_username"));
+        JLabel passwordLabel = new JLabel(InsuranceApp.getMessage("label_password"));
         JTextField textField = new JTextField();
         JPasswordField passwordField = new JPasswordField();
-        JButton okButton = new JButton("OK");
+        JButton okButton = new JButton(InsuranceApp.getMessage("label_ok").toUpperCase());
         okButton.addActionListener(e -> validateAction(textField, passwordField));
-        JButton cancelButton = new JButton("������");
+        JButton cancelButton = new JButton(InsuranceApp.getMessage("label_cancel").toUpperCase());
         cancelButton.addActionListener(e -> exitAction());
         panel.add(usernameLabel);
         panel.add(textField);
@@ -58,13 +59,15 @@ public class UserLogin extends JPanel {
                 break;
             case UNAUTHORIZED:
             default:
-                JOptionPane.showMessageDialog(this, "������������ ����� ��� ������", "������", JOptionPane.ERROR_MESSAGE);
+                JOptionPane.showMessageDialog(this, InsuranceApp.getMessage("notification_login_failed"),
+                    InsuranceApp.getMessage("notification_label_error"), JOptionPane.ERROR_MESSAGE);
         }
     }
 
     private void exitAction() {
         int confirmDialog = JOptionPane.showConfirmDialog(
-            this, "�� ������������� ������ �����?", "�������������", JOptionPane.YES_NO_OPTION);
+            this, InsuranceApp.getMessage("notification_quit"),
+            InsuranceApp.getMessage("notification_label_confirm"), JOptionPane.YES_NO_OPTION);
         if (confirmDialog == JOptionPane.YES_OPTION) {
             System.exit(0);
         }
