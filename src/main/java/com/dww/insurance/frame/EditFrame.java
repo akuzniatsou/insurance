@@ -249,7 +249,7 @@ class EditFrame extends JPanel {
         if (empty(nameTextField, lastNameTextField, addressTextField, phoneTextField, passIdTextField,
             vehicleBodyIdTextField, vehicleNumberTextField, vehicleModelTextField)) {
             JOptionPane.showMessageDialog(this, InsuranceApp.getMessage("notification_validation_failed"),
-                InsuranceApp.getMessage("notification_label_validation_failed"), JOptionPane.ERROR_MESSAGE);
+                InsuranceApp.getMessage("notification_label_error"), JOptionPane.ERROR_MESSAGE);
             return null;
         }
         driverInfo.setId(report == null ? 0 : report.getDriverInfo().getId());
